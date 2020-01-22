@@ -353,7 +353,12 @@ float hgeFont::GetStringWidth(const char* string, const bool b_multiline) const 
 
         while (*string && *string != '\n') {
             int i = static_cast<unsigned char>(*string);
-            if (string[1] && string[2] && string[1] == '~' && string[2] == '~') {
+            if (string[1] && string[2] && string[0] == '~' && string[2] == '~') {
+                if (string[1] == 'n') {
+                    string += 3;
+                    break;
+                }
+
                 string += 3;
                 continue;
             }
@@ -376,7 +381,7 @@ float hgeFont::GetStringWidth(const char* string, const bool b_multiline) const 
             w = linew;
         }
 
-        while (*string == '\n' || *string == '\r') {
+        while (*string == '\n' || *string == '\r' || (string[1] && string[2] && string[0] == '~' && string[1] == '\n' && string[2] == '~')) {
             string++;
         }
     }
