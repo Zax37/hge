@@ -310,6 +310,11 @@ struct hgeInputEvent
 #define HGEINP_NUMLOCK		32
 #define HGEINP_REPEAT		64
 
+class NotImplemented : public std::logic_error
+{
+public:
+    NotImplemented() : std::logic_error("Function not yet implemented") { };
+};
 
 /*
 ** HGE Interface class

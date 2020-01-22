@@ -72,7 +72,7 @@ hgeSprite::hgeSprite(const hgeSprite& spr) {
     hge_ = hgeCreate(HGE_VERSION);
 }
 
-void hgeSprite::Render(const float x, const float y) {
+void hgeSprite::Render(const float x, const float y, bool fliptri) {
 
     const auto tempx1 = x - hot_x_;
     const auto tempy1 = y - hot_y_;
@@ -88,7 +88,24 @@ void hgeSprite::Render(const float x, const float y) {
     quad_.v[3].x = tempx1;
     quad_.v[3].y = tempy2;
 
+    int temp[6];
+    if (fliptri) {
+        memcpy(temp, &this->quad_.v[3], sizeof(temp));
+        memcpy(&this->quad_.v[3], &this->quad_.v[2], sizeof(this->quad_.v[3]));
+        memcpy(&this->quad_.v[2], &this->quad_.v[1], sizeof(this->quad_.v[2]));
+        memcpy(&this->quad_.v[1], &this->quad_.v[0], sizeof(this->quad_.v[1]));
+        memcpy(&this->quad_.v[0], temp, sizeof(temp));
+    }
+
     hge_->Gfx_RenderQuad(&quad_);
+
+    if (fliptri) {
+        memcpy(temp, &this->quad_.v[0], sizeof(temp));
+        memcpy(&this->quad_.v[0], &this->quad_.v[1], sizeof(temp));
+        memcpy(&this->quad_.v[1], &this->quad_.v[2], sizeof(this->quad_.v[1]));
+        memcpy(&this->quad_.v[2], &this->quad_.v[3], sizeof(this->quad_.v[2]));
+        memcpy(&this->quad_.v[3], temp, sizeof(this->quad_.v[3]));
+    }
 }
 
 

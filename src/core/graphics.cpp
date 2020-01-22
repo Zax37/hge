@@ -34,6 +34,15 @@ void HGE_CALL HGE_Impl::Gfx_Clear(const DWORD color) {
     }
 }
 
+int clipping_x, clipping_y, clipping_w, clipping_h;
+
+void HGE_Impl::Gfx_GetClipping(int *x, int *y, int *w, int *h) {
+    *x = clipping_x;
+    *y = clipping_y;
+    *w = clipping_w;
+    *h = clipping_h;
+}
+
 void HGE_CALL HGE_Impl::Gfx_SetClipping(int x, int y, int w, int h) {
     hgeGAPIViewport vp;
     int scr_width, scr_height;
@@ -75,6 +84,11 @@ void HGE_CALL HGE_Impl::Gfx_SetClipping(int x, int y, int w, int h) {
         vp.Width = w;
         vp.Height = h;
     }
+
+    clipping_x = vp.X;
+    clipping_y = vp.Y;
+    clipping_w = vp.Width;
+    clipping_h = vp.Height;
 
     vp.MinZ = 0.0f;
     vp.MaxZ = 1.0f;
@@ -312,6 +326,37 @@ void HGE_CALL HGE_Impl::Gfx_RenderQuad(const hgeQuad* quad) {
                sizeof(hgeVertex) * HGEPRIM_QUADS);
         n_prim_++;
     }
+}
+
+void HGE_Impl::Gfx_RenderBumpedQuad(const hgeBumpQuad *quad, int, int) {
+    throw NotImplemented();
+}
+
+IDirect3DDevice9 *HGE_Impl::Gfx_GetDevice() {
+    throw NotImplemented();
+    return nullptr;
+}
+
+HSURFACE HGE_Impl::Target_GetSurface(HTARGET) {
+    throw NotImplemented();
+    return 0;
+}
+
+void HGE_Impl::Surface_Free(HSURFACE) {
+    throw NotImplemented();
+}
+
+DWORD *HGE_Impl::Surface_Lock(HSURFACE, bool, int, int, int, int) {
+    throw NotImplemented();
+    return nullptr;
+}
+
+void HGE_Impl::Surface_Unlock(HSURFACE) {
+    throw NotImplemented();
+}
+
+void HGE_Impl::Gfx_FlushBuffer() {
+    throw NotImplemented();
 }
 
 hgeVertex* HGE_CALL HGE_Impl::

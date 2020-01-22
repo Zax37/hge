@@ -904,6 +904,24 @@ void HGE_Impl::focus_change(const bool b_act) {
     }
 }
 
+std::vector<char*> HGE_Impl::System_GetDroppedFiles() {
+    throw NotImplemented();
+    return {};
+}
+
+void HGE_Impl::System_GetDroppedFilesPosition(int * x, int * y) {
+    throw NotImplemented();
+}
+
+void* HGE_Impl::System_GetNotifyParam() {
+    throw NotImplemented();
+    return nullptr;
+}
+
+void HGE_Impl::System_DoManualMainLoop() {
+    throw NotImplemented();
+}
+
 LRESULT CALLBACK WindowProc(const HWND hwnd, const UINT msg, WPARAM wparam, LPARAM lparam) {
 
     switch (msg) {

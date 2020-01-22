@@ -22,3 +22,8 @@ float HGE_CALL HGE_Impl::Timer_GetDelta() {
 int HGE_CALL HGE_Impl::Timer_GetFPS() {
     return fps_;
 }
+
+float HGE_Impl::Timer_GetDeltaRealtime() {
+    throw NotImplemented();
+    return 0.0;
+}

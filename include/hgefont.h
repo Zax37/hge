@@ -32,12 +32,12 @@ class hgeFont
 {
 public:
 	hgeFont(const char *filename, bool bMipmap=false);
-	hgeFont(const char *data, int datasize, HTEXTURE tex, bool pbDeleteTex, int iOffX, int iOffY);
+	hgeFont(char *data, int datasize, HTEXTURE tex, bool pbDeleteTex, int iOffX, int iOffY);
 	~hgeFont();
 
-	void		Render(float x, float y, int align, const char *string, bool pbDisableColors = 0);
-	void		printf(float x, float y, int align, const char *format, bool pbDisableColors = 0, ...);
-	void		printfb(float x, float y, float w, float h, int align, bool pbDisableColors, const char *format, ...);
+	void		Render(float x, float y, int align, const char *string, BOOL pbDisableColors = 0);
+	void		printf(float x, float y, int align, const char *format, BOOL pbDisableColors = 0, ...);
+	void		printfb(float x, float y, float w, float h, int align, BOOL pbDisableColors, const char *format, ...);
 
 	void		SetColor(DWORD col);
 	void		SetZ(float z);
@@ -65,7 +65,6 @@ public:
 	float		GetStringWidth(const char *string, bool bMultiline=true) const;
 
 private:
-	hgeFont();
 	hgeFont(const hgeFont &fnt);
 	hgeFont&	operator= (const hgeFont &fnt);
 
@@ -93,6 +92,7 @@ private:
 	bool        delete_tex_;
 
 	void LoadXML(char * data, int datasize, int iTexOffX = 0, int iTexOffY = 0);
+	void LoadCSV(char * data, int datasize, int iTexOffX = 0, int iTexOffY = 0);
 };
 
 
