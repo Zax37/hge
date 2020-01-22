@@ -3,3 +3,6 @@ _build/*
 bin/
 linklib/
 *.log
+.idea
+.vs
+cmake-build-*
