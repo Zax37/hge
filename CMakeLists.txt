@@ -7,7 +7,7 @@ cmake_minimum_required( VERSION 2.8 )
 ## Edit this to match your configuration
 ##----------------------------------------
 
-SET( DIRECTX_SDK_DIR "E:/Dev/DX9SDK" )
+SET( DIRECTX_SDK_DIR "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)" )
 
 ##----------------------------------------
 ## End of manual configuration section

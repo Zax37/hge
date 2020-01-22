@@ -20,7 +20,7 @@ char hgeFont::buffer_[1024];
 
 
 hgeFont::hgeFont(const char* font, const bool mipmap) {
-    uint32_t size;
+    DWORD size;
     char linebuf[256];
     char buf[MAX_PATH], *pbuf;
     int i, x, y, w, h, a, c;
@@ -321,7 +321,7 @@ float hgeFont::GetStringWidth(const char* string, const bool b_multiline) const 
     return w * scale_ * proportion_;
 }
 
-void hgeFont::SetColor(const uint32_t col) {
+void hgeFont::SetColor(const DWORD col) {
     col_ = col;
 
     for (int i = 0; i < 256; i++)
@@ -339,7 +339,7 @@ void hgeFont::SetZ(const float z) {
         }
 }
 
-void hgeFont::SetBlendMode(const hgeBlendMode blend) {
+void hgeFont::SetBlendMode(const int blend) {
     blend_ = blend;
 
     for (auto i = 0; i < 256; i++) {

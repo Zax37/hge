@@ -7,7 +7,8 @@
 */
 
 
-#pragma once
+#ifndef HGESTRINGS_H
+#define HGESTRINGS_H
 
 
 #include "hge.h"
@@ -21,18 +22,22 @@
 /*
 ** HGE String table class
 */
-class hgeStringTable {
+class hgeStringTable
+{
 public:
-    hgeStringTable(const char* filename);
-    ~hgeStringTable();
+	hgeStringTable(const char *filename);
+	~hgeStringTable();
 
     const char* GetString(const char* name);
 
 private:
-    hgeStringTable(const hgeStringTable&);
-    hgeStringTable& operator=(const hgeStringTable&);
+	hgeStringTable(const hgeStringTable &);
+	hgeStringTable&	operator= (const hgeStringTable &);
 
     std::map<std::string, std::string> strings_;
 
-    static HGE* hge_;
+	static HGE		*hge_;
 };
+
+
+#endif

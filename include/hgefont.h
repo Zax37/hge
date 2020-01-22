@@ -7,7 +7,8 @@
 */
 
 
-#pragma once
+#ifndef HGEFONT_H
+#define HGEFONT_H
 
 
 #include "hge.h"
@@ -27,112 +28,72 @@
 /*
 ** HGE Font class
 */
-class hgeFont {
+class hgeFont
+{
 public:
-    hgeFont(const char* filename, bool bMipmap = false);
-    ~hgeFont();
+	hgeFont(const char *filename, bool bMipmap=false);
+	hgeFont(const char *data, int datasize, HTEXTURE tex, bool pbDeleteTex, int iOffX, int iOffY);
+	~hgeFont();
 
-    void Render(float x, float y, int align, const char* string);
-    void printf(float x, float y, int align, const char* format, ...);
-    void printfb(float x, float y, float w, float h, int align, const char* format, ...);
+	void		Render(float x, float y, int align, const char *string, bool pbDisableColors = 0);
+	void		printf(float x, float y, int align, const char *format, bool pbDisableColors = 0, ...);
+	void		printfb(float x, float y, float w, float h, int align, bool pbDisableColors, const char *format, ...);
 
-    void SetColor(uint32_t col);
-    void SetZ(float z);
-    void SetBlendMode(hgeBlendMode blend);
+	void		SetColor(DWORD col);
+	void		SetZ(float z);
+	void		SetBlendMode(int blend);
+	void		SetScale(float scale) { scale_=scale;}
+	void		SetProportion(float prop) { proportion_=prop; }
+	void		SetRotation(float rot) { rot_=rot;}
+	void		SetTracking(float tracking) { tracking_=tracking;}
+	void		SetSpacing(float spacing) { spacing_=spacing;}
 
-    void SetScale(const float scale) {
-        scale_ = scale;
-    }
+	DWORD		GetColor() const {return col_;}
+	float		GetZ() const {return z_;}
+	int			GetBlendMode() const {return blend_;}
+	float		GetScale() const {return scale_;}
+	float		GetProportion() const { return proportion_; }
+	float		GetRotation() const {return rot_;}
+	float		GetTracking() const {return tracking_;}
+	float		GetSpacing() const {return spacing_;}
 
-    void SetProportion(const float prop) {
-        proportion_ = prop;
-    }
-
-    void SetRotation(const float rot) {
-        rot_ = rot;
-    }
-
-    void SetTracking(const float tracking) {
-        tracking_ = tracking;
-    }
-
-    void SetSpacing(const float spacing) {
-        spacing_ = spacing;
-    }
-
-    uint32_t GetColor() const {
-        return col_;
-    }
-
-    float GetZ() const {
-        return z_;
-    }
-
-    int GetBlendMode() const {
-        return blend_;
-    }
-
-    float GetScale() const {
-        return scale_;
-    }
-
-    float GetProportion() const {
-        return proportion_;
-    }
-
-    float GetRotation() const {
-        return rot_;
-    }
-
-    float GetTracking() const {
-        return tracking_;
-    }
-
-    float GetSpacing() const {
-        return spacing_;
-    }
-
-    hgeSprite* GetSprite(const char chr) const {
-        return letters_[static_cast<unsigned char>(chr)];
-    }
-
-    float GetPreWidth(const char chr) const {
-        return pre_[static_cast<unsigned char>(chr)];
-    }
-
-    float GetPostWidth(const char chr) const {
-        return post_[static_cast<unsigned char>(chr)];
-    }
-
-    float GetHeight() const {
-        return height_;
-    }
-
-    float GetStringWidth(const char* string, bool bMultiline = true) const;
+	hgeSprite*	GetSprite(char chr) const { return letters_[(unsigned char)chr]; }
+	float		GetPreWidth(char chr) const { return pre_[(unsigned char)chr]; }
+	float		GetPostWidth(char chr) const { return post_[(unsigned char)chr]; }
+	float		GetHeight() const { return height_; }
+	float       GetHeightb(int w, const char * str);
+	float		GetStringWidth(const char *string, bool bMultiline=true) const;
 
 private:
-    hgeFont();
-    hgeFont(const hgeFont& fnt);
-    hgeFont& operator=(const hgeFont& fnt);
+	hgeFont();
+	hgeFont(const hgeFont &fnt);
+	hgeFont&	operator= (const hgeFont &fnt);
 
-    char* _get_line(char* file, char* line);
+	char*		_get_line(char *file, char *line);
 
-    static HGE* hge_;
+	static HGE	*hge_;
 
-    static char buffer_[1024];
+	static char	buffer_[1024];
 
-    HTEXTURE texture_;
-    hgeSprite* letters_[256];
-    float pre_[256];
-    float post_[256];
-    float height_;
-    float scale_;
-    float proportion_;
-    float rot_;
-    float tracking_;
-    float spacing_;
+	HTEXTURE	texture_;
+	hgeSprite*	letters_[256];
+	float       realw_[256];
+	float		pre_[256];
+	float		post_[256];
+	float		height_;
+	float		scale_;
+	float		proportion_;
+	float		rot_;
+	float		tracking_;
+	float		spacing_;
 
-    uint32_t col_;
-    float z_;
-    hgeBlendMode blend_;
+	DWORD		col_;
+	float		z_;
+	int			blend_;
+	bool        delete_tex_;
+
+	void LoadXML(char * data, int datasize, int iTexOffX = 0, int iTexOffY = 0);
 };
+
+
+#endif

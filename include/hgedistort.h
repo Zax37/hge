@@ -7,7 +7,8 @@
 */
 
 
-#pragma once
+#ifndef HGEDISTORT_H
+#define HGEDISTORT_H
 
 
 #include "hge.h"
@@ -20,64 +21,46 @@
 /*
 ** HGE Distortion mesh class
 */
-class hgeDistortionMesh {
+class hgeDistortionMesh
+{
 public:
-    hgeDistortionMesh(int cols, int rows);
-    hgeDistortionMesh(const hgeDistortionMesh& dm);
-    ~hgeDistortionMesh();
+     hgeDistortionMesh(int cols, int rows);
+     hgeDistortionMesh(const hgeDistortionMesh &dm);
+     ~hgeDistortionMesh();
 
-    hgeDistortionMesh& operator=(const hgeDistortionMesh& dm);
+	 hgeDistortionMesh&	operator= (const hgeDistortionMesh &dm);
 
-    void Render(float x, float y);
-    void Clear(uint32_t col = 0xFFFFFFFF, float z = 0.5f);
+     void		Render(float x, float y);
+     void		Clear(DWORD col=0xFFFFFFFF, float z=0.5f);
 
-    void SetTexture(HTEXTURE tex);
-    void SetTextureRect(float x, float y, float w, float h);
-    void SetBlendMode(int blend);
-    void SetZ(int col, int row, float z);
-    void SetColor(int col, int row, uint32_t color);
-    void SetDisplacement(int col, int row, float dx, float dy, int ref);
+     void		SetTexture(HTEXTURE tex);
+     void		SetTextureRect(float x, float y, float w, float h);
+     void		SetBlendMode(int blend);
+     void		SetZ(int col, int row, float z);
+     void		SetColor(int col, int row, DWORD color);
+     void		SetDisplacement(int col, int row, float dx, float dy, int ref);
 
-    HTEXTURE GetTexture() const {
-        return quad_.tex;
-    }
+     HTEXTURE	GetTexture() const {return quad_.tex;}
+     void		GetTextureRect(float *x, float *y, float *w, float *h) const { *x=tx_; *y=ty_; *w=width_; *h=height_; }
+     int		GetBlendMode() const { return quad_.blend; }
+     float		GetZ(int col, int row) const;
+     DWORD		GetColor(int col, int row) const;
+     void		GetDisplacement(int col, int row, float *dx, float *dy, int ref) const;
 
-    void GetTextureRect(float* x, float* y, float* w, float* h) const {
-        *x = tx_;
-        *y = ty_;
-        *w = width_;
-        *h = height_;
-    }
-
-    hgeBlendMode GetBlendMode() const {
-        return quad_.blend;
-    }
-
-    float GetZ(int col, int row) const;
-    uint32_t GetColor(int col, int row) const;
-    void GetDisplacement(int col, int row, float* dx, float* dy, int ref) const;
-
-    int GetRows() {
-        return rows_;
-    }
-
-    int GetCols() {
-        return cols_;
-    }
+	 int		GetRows() { return rows_; }
+	 int		GetCols() { return cols_; }
 
 private:
-    hgeDistortionMesh();
+	hgeDistortionMesh();
 
-    static HGE* hge_;
+	static HGE	*hge_;
 
-    hgeVertex* disp_array_;
-    int rows_;
-    int cols_;
-    float cellw_;
-    float cellh_;
-    float tx_;
-    float ty_;
-    float width_;
-    float height_;
-    hgeQuad quad_;
+	hgeVertex	*disp_array_;
+	int			rows_, cols_;
+	float		cellw_, cellh_;
+	float		tx_, ty_, width_, height_;
+	hgeQuad		quad_;
 };
+
+
+#endif

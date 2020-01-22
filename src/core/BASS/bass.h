@@ -37,15 +37,15 @@ extern "C" {
 #define BASSDEF(f) WINAPI f
 #endif
 
-typedef uint32_t HMUSIC;		// MOD music handle
-typedef uint32_t HSAMPLE;		// sample handle
-typedef uint32_t HCHANNEL;		// playing sample's channel handle
-typedef uint32_t HSTREAM;		// sample stream handle
-typedef uint32_t HRECORD;		// recording handle
-typedef uint32_t HSYNC;		// synchronizer handle
-typedef uint32_t HDSP;			// DSP handle
-typedef uint32_t HFX;			// DX8 effect handle
-typedef uint32_t HPLUGIN;		// Plugin handle
+typedef DWORD HMUSIC;		// MOD music handle
+typedef DWORD HSAMPLE;		// sample handle
+typedef DWORD HCHANNEL;		// playing sample's channel handle
+typedef DWORD HSTREAM;		// sample stream handle
+typedef DWORD HRECORD;		// recording handle
+typedef DWORD HSYNC;		// synchronizer handle
+typedef DWORD HDSP;			// DSP handle
+typedef DWORD HFX;			// DX8 effect handle
+typedef DWORD HPLUGIN;		// Plugin handle
 
 // Error codes returned by BASS_ErrorGetCode
 #define BASS_OK				0	// all is OK

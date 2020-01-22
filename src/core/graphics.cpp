@@ -13,7 +13,7 @@
 #include "hge_gapi.h"
 
 
-void HGE_CALL HGE_Impl::Gfx_Clear(const uint32_t color) {
+void HGE_CALL HGE_Impl::Gfx_Clear(const DWORD color) {
     if (cur_target_) {
         if (cur_target_->pDepth) {
             d3d_device_->Clear(0, nullptr, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 
@@ -234,7 +234,7 @@ void HGE_CALL HGE_Impl::Gfx_EndScene() {
 
 void HGE_CALL HGE_Impl::Gfx_RenderLine(const float x1, const float y1,
                                        const float x2, const float y2,
-                                       const uint32_t color, const float z) {
+                                       const DWORD color, const float z) {
     if (vert_array_) {
         if (cur_prim_type_ != HGEPRIM_LINES
             || n_prim_ >= VERTEX_BUFFER_SIZE / HGEPRIM_LINES
@@ -435,9 +435,9 @@ HTEXTURE HGE_CALL HGE_Impl::Texture_Create(int width, int height) {
 }
 
 HTEXTURE HGE_CALL HGE_Impl::Texture_Load(const char* filename,
-                                         const uint32_t size, bool bMipmap) {
+                                         const DWORD size, bool bMipmap) {
     void* data;
-    uint32_t size1;
+    DWORD size1;
     D3DFORMAT fmt1, fmt2;
     hgeGAPITexture* p_tex;
     D3DXIMAGE_INFO info;
@@ -576,7 +576,7 @@ int HGE_CALL HGE_Impl::Texture_GetHeight(const HTEXTURE tex,
 }
 
 
-uint32_t* HGE_CALL HGE_Impl::Texture_Lock(const HTEXTURE tex,
+DWORD* HGE_CALL HGE_Impl::Texture_Lock(const HTEXTURE tex,
                                           const bool b_read_only,
                                           const int left, const int top,
                                           const int width, const int height) {
@@ -615,7 +615,7 @@ uint32_t* HGE_CALL HGE_Impl::Texture_Lock(const HTEXTURE tex,
         return nullptr;
     }
 
-    return static_cast<uint32_t *>(t_rect.pBits);
+    return static_cast<DWORD *>(t_rect.pBits);
 }
 
 

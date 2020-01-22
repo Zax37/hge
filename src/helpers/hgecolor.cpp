@@ -11,7 +11,7 @@
 #include <math.h>
 
 
-void hgeColorHSV::SetHWColor(uint32_t col) {
+void hgeColorHSV::SetHWColor(DWORD col) {
     a = (col >> 24) / 255.0f;
     auto r = ((col >> 16) & 0xFF) / 255.0f;
     auto g = ((col >> 8) & 0xFF) / 255.0f;
@@ -52,7 +52,7 @@ void hgeColorHSV::SetHWColor(uint32_t col) {
     }
 }
 
-uint32_t hgeColorHSV::GetHWColor() const {
+DWORD hgeColorHSV::GetHWColor() const {
     float r;
     float g;
     float b;

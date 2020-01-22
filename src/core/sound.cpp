@@ -17,8 +17,8 @@
 
 
 HEFFECT HGE_CALL HGE_Impl::Effect_Load(const char* filename, 
-                                       const uint32_t size) {
-    uint32_t size_1;
+                                       const DWORD size) {
+    DWORD size_1;
     BASS_CHANNELINFO info;
     void* data;
 
@@ -108,9 +108,9 @@ void HGE_CALL HGE_Impl::Effect_Free(const HEFFECT eff) {
 }
 
 
-HMUSIC HGE_CALL HGE_Impl::Music_Load(const char* filename, const uint32_t size) {
+HMUSIC HGE_CALL HGE_Impl::Music_Load(const char* filename, const DWORD size) {
     void* data;
-    uint32_t size_1;
+    DWORD size_1;
 
     if (!hBass) return 0;
     if (size) {
@@ -222,9 +222,9 @@ int HGE_CALL HGE_Impl::Music_GetChannelVolume(const HMUSIC music, const int chan
     return BASS_MusicGetAttribute(music, BASS_MUSIC_ATTRIB_VOL_CHAN + channel);
 }
 
-HSTREAM HGE_CALL HGE_Impl::Stream_Load(const char* filename, const uint32_t size) {
+HSTREAM HGE_CALL HGE_Impl::Stream_Load(const char* filename, const DWORD size) {
     void* data;
-    uint32_t _size;
+    DWORD _size;
 
     if (!hBass) return 0;
     if (is_silent_) {

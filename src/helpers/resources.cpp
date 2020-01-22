@@ -289,7 +289,7 @@ void ScriptParseSpriteAnim(RScriptParser* sp, RSprite* rc, const bool anim) {
 
 void RScript::Parse(hgeResourceManager* rm, RScriptParser* sp, const char* sname,
                     const char* sbasename) {
-    uint32_t size;
+    DWORD size;
     char lname[MAXRESCHARS], basename[MAXRESCHARS];
 
     if (!FindRes(rm, RES_SCRIPT, sname)) {

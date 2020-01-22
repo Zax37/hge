@@ -7,7 +7,8 @@
 */
 
 
-#pragma once
+#ifndef HGEVECTOR_H
+#define HGEVECTOR_H
 
 
 #include "hge.h"
@@ -116,3 +117,5 @@ inline float operator^(const hgeVector& v, const hgeVector& u) {
 inline float operator%(const hgeVector& v, const hgeVector& u) {
     return v.Dot(&u);
 }
+
+#endif

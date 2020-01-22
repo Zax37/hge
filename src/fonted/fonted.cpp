@@ -8,7 +8,7 @@
 
 
 #include "fonted.h"
-#include <stdio.h>
+#include <cstdio>
 #include "fontlist.h"
 #include "hgeguictrls.h"
 #include "hgeguirange.h"
@@ -65,11 +65,8 @@ bool frame_func() {
     if (handle_keys(hge->Input_GetKey())) {
         return true;
     }
-    if (do_commands(gui->Update(dt))) {
-        return true;
-    }
+    return do_commands(gui->Update(dt));
 
-    return false;
 }
 
 bool render_func() {
@@ -169,13 +166,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
     hge->System_SetState(HGE_SCREENHEIGHT, 600);
     hge->System_SetState(HGE_SCREENBPP, 32);
     hge->System_SetState(HGE_USESOUND, false);
-
-    if (hge->Ini_GetInt("HGE", "FullScreen", 0)) {
-        hge->System_SetState(HGE_WINDOWED, false);
-    }
-    else {
-        hge->System_SetState(HGE_WINDOWED, true);
-    }
+    hge->System_SetState(HGE_WINDOWED, hge->Ini_GetInt("HGE", "FullScreen", 0) == 0);
 
     if (hge->System_Initiate()) {
         init_editor();
