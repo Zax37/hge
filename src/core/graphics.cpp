@@ -333,11 +333,10 @@ void HGE_Impl::Gfx_RenderBumpedQuad(const hgeBumpQuad *quad, int, int) {
 }
 
 IDirect3DDevice9 *HGE_Impl::Gfx_GetDevice() {
-    throw NotImplemented();
-    return nullptr;
+    return d3d_device_;
 }
 
-HSURFACE HGE_Impl::Target_GetSurface(HTARGET) {
+HSURFACE HGE_Impl::Target_GetSurface(HTARGET hTarget) {
     throw NotImplemented();
     return 0;
 }
@@ -1354,45 +1353,134 @@ bool HGE_Impl::init_lost() {
     return true;
 }
 
-#if HGE_DIRECTX_VER >= 9
-HSHADER HGE_CALL HGE_Impl::Shader_Create(const char* filename) {
-    LPD3DXBUFFER code = nullptr;
-    LPDIRECT3DPIXELSHADER9 pixelShader = nullptr;
+HSHADER HGE_CALL HGE_Impl::Shader_Create(const char* filename, DWORD size) {
+    LPD3DXEFFECT ret = {};
+    HRESULT res;
 
-    auto result = D3DXCompileShaderFromFile(
-        filename, nullptr, //macro's
-        nullptr, //includes
-        "ps_main", //main function
-        "ps_2_0", //shader profile
-        0, //flags
-        &code, //compiled operations
-        nullptr, //errors
-        nullptr); //constants
+    if (size)
+        res = D3DXCreateEffect(d3d_device_, filename, size, 0, 0, 0, 0, &ret, 0);
+    else
+        res = D3DXCreateEffectFromFileA(d3d_device_, filename, 0, 0, 0, 0, &ret, 0);
 
-    if (FAILED(result)) {
+    if (FAILED(res)) {
         post_error("Can't create shader");
         return NULL;
     }
-
-    d3d_device_->CreatePixelShader(static_cast<DWORD *>(code->GetBufferPointer()),
-                                   &pixelShader);
-    code->Release();
-    return reinterpret_cast<HSHADER>(pixelShader);
+    return (HSHADER)ret;
 }
-#endif
 
-#if HGE_DIRECTX_VER >= 9
-void HGE_CALL HGE_Impl::Gfx_SetShader(const HSHADER shader) {
-    if (cur_shader_ != shader) {
-        render_batch();
-        cur_shader_ = shader;
-        d3d_device_->SetPixelShader(reinterpret_cast<LPDIRECT3DPIXELSHADER9>(shader));
+HSHTECH HGE_CALL HGE_Impl::Shader_GetTechnique(HSHADER shad, const char *name) {
+    if (shad) {
+        return (HSHTECH) ((LPD3DXEFFECT) shad)->GetCurrentTechnique();
+    }
+    return 0;
+}
+
+void HGE_CALL HGE_Impl::Shader_SetTechnique(HSHADER shad, HSHTECH tech) {
+    ((LPD3DXEFFECT)shad)->SetTechnique(reinterpret_cast<D3DXHANDLE>(tech));
+}
+
+int HGE_CALL HGE_Impl::Shader_Begin(HSHADER shad, int flags) {
+    if (shad) {
+        if (flags == 2) {
+            flags = 4;
+        } else if (flags != 1) {
+            flags = 2 * (flags == 3);
+        }
+        UINT passes;
+        if (!((LPD3DXEFFECT)shad)->Begin(&passes, flags)) {
+            return passes;
+        }
+        post_error("Can't begin shader");
+    }
+    return 0;
+}
+
+void HGE_CALL HGE_Impl::Shader_End(HSHADER shad) {
+    ((LPD3DXEFFECT)shad)->End();
+}
+
+void HGE_CALL HGE_Impl::Shader_BeginPass(HSHADER shad, int pass) {
+    auto result = ((LPD3DXEFFECT)shad)->BeginPass(pass);
+    if (result) {
+        post_error("Can't begin shader pass");
     }
 }
-#endif
 
-#if HGE_DIRECTX_VER >= 9
-void HGE_CALL HGE_Impl::Shader_Free(const HSHADER shader) {
-    reinterpret_cast<LPDIRECT3DPIXELSHADER9>(shader)->Release();
+void HGE_CALL HGE_Impl::Shader_EndPass(HSHADER shad) {
+    ((LPD3DXEFFECT)shad)->EndPass();
 }
-#endif
+
+void HGE_CALL HGE_Impl::Shader_CommitChanges(HSHADER shad) {
+    auto result = ((LPD3DXEFFECT)shad)->CommitChanges();
+    if (result) {
+        post_error("Can't commit changes");
+    }
+}
+
+HSHPARAM HGE_CALL HGE_Impl::Shader_GetParam(HSHADER shad, const char *name) {
+    return (HSHPARAM) ((LPD3DXEFFECT) shad)->GetParameterByName(NULL, name);
+}
+
+void HGE_CALL HGE_Impl::Shader_SetValue(HSHADER shad, HSHPARAM param, void *data, int length) {
+    ((LPD3DXEFFECT)shad)->SetValue(reinterpret_cast<D3DXHANDLE>(param), data, length);
+}
+
+void HGE_CALL HGE_Impl::Shader_GetValue(HSHADER shad, HSHPARAM param, void *data, int length) {
+    ((LPD3DXEFFECT)shad)->GetValue(reinterpret_cast<D3DXHANDLE>(param), data, length);
+}
+
+void HGE_CALL HGE_Impl::Shader_SetBool(HSHADER shad, HSHPARAM param, bool b) {
+    ((LPD3DXEFFECT)shad)->SetBool(reinterpret_cast<D3DXHANDLE>(param), b);
+}
+
+bool HGE_CALL HGE_Impl::Shader_GetBool(HSHADER shad, HSHPARAM param) {
+    BOOL ret;
+    ((LPD3DXEFFECT)shad)->GetBool(reinterpret_cast<D3DXHANDLE>(param), &ret);
+    return ret;
+}
+
+void HGE_CALL HGE_Impl::Shader_SetFloat(HSHADER shad, HSHPARAM param, float f) {
+    ((LPD3DXEFFECT)shad)->SetFloat(reinterpret_cast<D3DXHANDLE>(param), f);
+}
+
+float HGE_CALL HGE_Impl::Shader_GetFloat(HSHADER shad, HSHPARAM param) {
+    FLOAT ret;
+    ((LPD3DXEFFECT)shad)->GetFloat(reinterpret_cast<D3DXHANDLE>(param), &ret);
+    return ret;
+}
+
+void HGE_CALL HGE_Impl::Shader_SetInt(HSHADER shad, HSHPARAM param, int f) {
+    ((LPD3DXEFFECT)shad)->SetInt(reinterpret_cast<D3DXHANDLE>(param), f);
+}
+
+int HGE_CALL HGE_Impl::Shader_GetInt(HSHADER shad, HSHPARAM param) {
+    INT ret;
+    ((LPD3DXEFFECT)shad)->GetInt(reinterpret_cast<D3DXHANDLE>(param), &ret);
+    return ret;
+}
+
+void HGE_CALL HGE_Impl::Shader_SetTexture(HSHADER shad, HSHPARAM param, HTEXTURE tex) {
+    ((LPD3DXEFFECT)shad)->SetTexture(reinterpret_cast<D3DXHANDLE>(param), reinterpret_cast<LPDIRECT3DBASETEXTURE9>(tex));
+}
+
+HTEXTURE    HGE_CALL HGE_Impl::Shader_GetTexture(HSHADER shad, HSHPARAM param) {
+    HTEXTURE ret;
+    ((LPD3DXEFFECT)shad)->GetTexture(reinterpret_cast<D3DXHANDLE>(param),
+                                     reinterpret_cast<LPDIRECT3DBASETEXTURE9 *>(&ret));
+    return ret;
+}
+
+void HGE_CALL HGE_Impl::Shader_SetVector(HSHADER shad, HSHPARAM param, float x, float y, float z, float w) {
+    D3DXVECTOR4 v(x, y, z, w);
+    ((LPD3DXEFFECT)shad)->SetVector(reinterpret_cast<D3DXHANDLE>(param), (const D3DXVECTOR4 *) &v);
+}
+
+void HGE_CALL HGE_Impl::Shader_GetVector(HSHADER shad, HSHPARAM param, float *x, float *y, float *z, float *w) {
+    D3DXVECTOR4 v;
+    ((LPD3DXEFFECT)shad)->GetVector(reinterpret_cast<D3DXHANDLE>(param), &v);
+    *x = v.x;
+    *y = v.y;
+    *z = v.z;
+    *w = v.w;
+}

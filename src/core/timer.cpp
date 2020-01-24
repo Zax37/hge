@@ -24,6 +24,5 @@ int HGE_CALL HGE_Impl::Timer_GetFPS() {
 }
 
 float HGE_Impl::Timer_GetDeltaRealtime() {
-    throw NotImplemented();
-    return 0.0;
+    return timeGetTime() - t0_ / 1000.0;
 }

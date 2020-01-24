@@ -153,7 +153,6 @@ enum hgeFuncState
 	HGE_GFXRESTOREFUNC	= 12,   // bool*()	exit function		(default: NULL)
 	HGE_EXITFUNC		= 13,   // bool*()	exit function		(default: NULL)
 	HGE_FILEDROPFUNC    = 32,   // bool*()  file dropped        (default: NULL)
-	HGE_WMNOTIFYFUNC    = 33,   // bool*()  notify received     (default: NULL)
 
 	HGEFUNCSTATE_FORCE_DWORD = 0x7FFFFFFF
 };
@@ -451,11 +450,28 @@ public:
 	virtual void        HGE_CALL    Gfx_GetClipping(int * x = NULL, int * y = NULL, int * w = NULL, int * h = NULL) = 0;
 	virtual void        HGE_CALL    Gfx_FlushBuffer() = 0;
 
-#if HGE_DIRECTX_VER >= 9
-    virtual HSHADER HGE_CALL Shader_Create(const char* filename) = 0;
-    virtual void HGE_CALL Shader_Free(HSHADER shader) = 0;
-    virtual void HGE_CALL Gfx_SetShader(HSHADER shader) = 0;
-#endif
+    virtual HSHADER     HGE_CALL    Shader_Create(const char * filename, DWORD size) = 0;
+    virtual HSHTECH     HGE_CALL    Shader_GetTechnique(HSHADER shad, const char * name) = 0;
+    virtual void        HGE_CALL    Shader_SetTechnique(HSHADER shad, HSHTECH tech) = 0;
+    virtual int         HGE_CALL    Shader_Begin(HSHADER shad, int flags) = 0;
+    virtual void        HGE_CALL    Shader_End(HSHADER shad) = 0;
+    virtual void        HGE_CALL    Shader_BeginPass(HSHADER shad, int pass) = 0;
+    virtual void        HGE_CALL    Shader_EndPass(HSHADER shad) = 0;
+    virtual void        HGE_CALL    Shader_CommitChanges(HSHADER shad) = 0;
+
+    virtual HSHPARAM    HGE_CALL    Shader_GetParam(HSHADER shad, const char * name) = 0;
+    virtual void        HGE_CALL    Shader_SetValue(HSHADER shad, HSHPARAM param, void * data, int length) = 0;
+    virtual void        HGE_CALL    Shader_GetValue(HSHADER shad, HSHPARAM param, void * data, int length) = 0;
+    virtual void        HGE_CALL    Shader_SetBool(HSHADER shad, HSHPARAM param, bool b) = 0;
+    virtual bool        HGE_CALL    Shader_GetBool(HSHADER shad, HSHPARAM param) = 0;
+    virtual void        HGE_CALL    Shader_SetFloat(HSHADER shad, HSHPARAM param, float f) = 0;
+    virtual float       HGE_CALL    Shader_GetFloat(HSHADER shad, HSHPARAM param) = 0;
+    virtual void        HGE_CALL    Shader_SetInt(HSHADER shad, HSHPARAM param, int f) = 0;
+    virtual int         HGE_CALL    Shader_GetInt(HSHADER shad, HSHPARAM param) = 0;
+    virtual void        HGE_CALL    Shader_SetTexture(HSHADER shad, HSHPARAM param, HTEXTURE tex) = 0;
+    virtual HTEXTURE    HGE_CALL    Shader_GetTexture(HSHADER shad, HSHPARAM param) = 0;
+    virtual void        HGE_CALL    Shader_SetVector(HSHADER shad, HSHPARAM param, float x, float y, float z, float w) = 0;
+    virtual void        HGE_CALL    Shader_GetVector(HSHADER shad, HSHPARAM param, float * x, float * y, float * z, float * w) = 0;
 
 	virtual HTARGET		HGE_CALL	Target_Create(int width, int height, bool zbuffer) = 0;
 	virtual void		HGE_CALL	Target_Free(HTARGET target) = 0;

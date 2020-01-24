@@ -124,10 +124,18 @@ bool HGE_CALL HGE_Impl::System_Initiate() {
 
     style_windowed_ = WS_BORDER
             | WS_POPUP
-            | WS_CAPTION
             | WS_SYSMENU
             | WS_MINIMIZEBOX
             | WS_VISIBLE;
+
+    if (window_caption_) {
+        style_windowed_ |= WS_CAPTION;
+    }
+
+    DWORD dwExStyle = 0;
+    if (window_accept_files_) {
+        dwExStyle |= WS_EX_ACCEPTFILES;
+    }
 
     //Fullscreen
     rect_fullscreen_.left = 0;
@@ -149,13 +157,13 @@ bool HGE_CALL HGE_Impl::System_Initiate() {
     AdjustWindowRect(&rect_windowed_, style_windowed_, false);
 
     if (windowed_)
-        hwnd_ = CreateWindowEx(0, WINDOW_CLASS_NAME, win_title_, style_windowed_,
+        hwnd_ = CreateWindowEx(dwExStyle, WINDOW_CLASS_NAME, win_title_, style_windowed_,
                                rect_windowed_.left, rect_windowed_.top,
                                rect_windowed_.right - rect_windowed_.left,
                                rect_windowed_.bottom - rect_windowed_.top,
                                hwnd_parent_, nullptr, h_instance_, nullptr);
     else
-        hwnd_ = CreateWindowEx(WS_EX_TOPMOST, WINDOW_CLASS_NAME,
+        hwnd_ = CreateWindowEx(dwExStyle | WS_EX_TOPMOST, WINDOW_CLASS_NAME,
                                win_title_, style_fullscreen_,
                                0, 0, 0, 0,
                                nullptr, nullptr, h_instance_, nullptr);
@@ -473,6 +481,15 @@ void HGE_CALL HGE_Impl::System_SetStateBool(const hgeBoolState state, const bool
         splash_screen_enabled_ = value;
         break;
 #endif
+    case HGE_WINDOWCAPTION:
+        window_caption_ = value;
+        break;
+    case HGE_ACCEPTFILES:
+        if (hwnd_) {
+            DragAcceptFiles(hwnd_, value);
+        }
+        window_accept_files_ = value;
+        break;
     }
 }
 
@@ -496,6 +513,9 @@ void HGE_CALL HGE_Impl::System_SetStateFunc(const hgeFuncState state,
         break;
     case HGE_EXITFUNC:
         proc_exit_func_ = value;
+        break;
+    case HGE_FILEDROPFUNC:
+        proc_file_dropped_func_ = value;
         break;
     }
 }
@@ -904,13 +924,16 @@ void HGE_Impl::focus_change(const bool b_act) {
     }
 }
 
+std::vector<char*> droppedFiles;
+POINT droppedFilesPosition;
+
 std::vector<char*> HGE_Impl::System_GetDroppedFiles() {
-    throw NotImplemented();
-    return {};
+    return droppedFiles;
 }
 
 void HGE_Impl::System_GetDroppedFilesPosition(int * x, int * y) {
-    throw NotImplemented();
+    *x = droppedFilesPosition.x;
+    *y = droppedFilesPosition.y;
 }
 
 void* HGE_Impl::System_GetNotifyParam() {
@@ -1055,6 +1078,25 @@ LRESULT CALLBACK WindowProc(const HWND hwnd, const UINT msg, WPARAM wparam, LPAR
             pHGE->active_ = false;
             return DefWindowProc(hwnd, msg, wparam, lparam);
         }
+        break;
+    case WM_DROPFILES:
+        if (!pHGE->proc_file_dropped_func_) {
+            break;
+        }
+        int nFiles = DragQueryFile((HDROP)wparam, 0xFFFFFFFF, NULL, 0);
+        for (int i = 0; i < nFiles; i++)
+        {
+            char* szTemp64x = new char[MAX_PATH + 1];
+            DragQueryFile((HDROP)wparam, i, szTemp64x, MAX_PATH);
+            droppedFiles.push_back(szTemp64x);
+        }
+        DragQueryPoint((HDROP)wparam, &droppedFilesPosition);
+        DragFinish((HDROP)wparam);
+        pHGE->proc_file_dropped_func_();
+        for (auto file : droppedFiles) {
+            delete[] file;
+        }
+        droppedFiles.clear();
         break;
     }
 
