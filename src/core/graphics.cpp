@@ -11,6 +11,7 @@
 #include "hge_impl.h"
 // GAPI dependent includes and defines (DX8/DX9 switch) by kvakvs@yandex.ru
 #include "hge_gapi.h"
+#include "notimplemented.h"
 
 
 void HGE_CALL HGE_Impl::Gfx_Clear(const DWORD color) {

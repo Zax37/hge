@@ -8,6 +8,7 @@
 
 
 #include "hge_impl.h"
+#include "notimplemented.h"
 
 
 #define LOWORDINT(n) ((int)((signed short)(LOWORD(n))))
@@ -934,11 +935,6 @@ std::vector<char*> HGE_Impl::System_GetDroppedFiles() {
 void HGE_Impl::System_GetDroppedFilesPosition(int * x, int * y) {
     *x = droppedFilesPosition.x;
     *y = droppedFilesPosition.y;
-}
-
-void* HGE_Impl::System_GetNotifyParam() {
-    throw NotImplemented();
-    return nullptr;
 }
 
 void HGE_Impl::System_DoManualMainLoop() {

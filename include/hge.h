@@ -309,12 +309,6 @@ struct hgeInputEvent
 #define HGEINP_NUMLOCK		32
 #define HGEINP_REPEAT		64
 
-class NotImplemented : public std::logic_error
-{
-public:
-    NotImplemented() : std::logic_error("Function not yet implemented") { };
-};
-
 /*
 ** HGE Interface class
 */
@@ -333,7 +327,6 @@ public:
     virtual void                HGE_CALL    System_Snapshot(const char* filename = nullptr) = 0;
 	virtual std::vector<char*>  HGE_CALL    System_GetDroppedFiles() = 0;
 	virtual void                HGE_CALL    System_GetDroppedFilesPosition(int * x, int * y) = 0;
-	virtual void *              HGE_CALL    System_GetNotifyParam() = 0;
 	virtual void                HGE_CALL    System_DoManualMainLoop() = 0;
 
 private:

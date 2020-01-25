@@ -86,7 +86,6 @@ public:
     bool HGE_CALL System_Launch(const char* url) override;
     void HGE_CALL System_Snapshot(const char* filename = nullptr) override;
     void HGE_CALL System_GetDroppedFilesPosition(int *x, int *y) override;
-    void* HGE_CALL System_GetNotifyParam() override;
     void HGE_CALL System_DoManualMainLoop() override;
 
     void* HGE_CALL Resource_Load(const char* filename, DWORD* size = nullptr) override;
@@ -192,28 +191,28 @@ public:
     DWORD* HGE_CALL Surface_Lock(HSURFACE, bool, int, int, int, int) override;
     void HGE_CALL Surface_Unlock(HSURFACE) override;
 
-    virtual HSHADER     HGE_CALL    Shader_Create(const char * filename, DWORD size) override;
-    virtual HSHTECH     HGE_CALL    Shader_GetTechnique(HSHADER shad, const char * name) override;
-    virtual void        HGE_CALL    Shader_SetTechnique(HSHADER shad, HSHTECH tech) override;
-    virtual int         HGE_CALL    Shader_Begin(HSHADER shad, int flags) override;
-    virtual void        HGE_CALL    Shader_End(HSHADER shad) override;
-    virtual void        HGE_CALL    Shader_BeginPass(HSHADER shad, int pass) override;
-    virtual void        HGE_CALL    Shader_EndPass(HSHADER shad) override;
-    virtual void        HGE_CALL    Shader_CommitChanges(HSHADER shad) override;
+    HSHADER     HGE_CALL    Shader_Create(const char * filename, DWORD size) override;
+    HSHTECH     HGE_CALL    Shader_GetTechnique(HSHADER shad, const char * name) override;
+    void        HGE_CALL    Shader_SetTechnique(HSHADER shad, HSHTECH tech) override;
+    int         HGE_CALL    Shader_Begin(HSHADER shad, int flags) override;
+    void        HGE_CALL    Shader_End(HSHADER shad) override;
+    void        HGE_CALL    Shader_BeginPass(HSHADER shad, int pass) override;
+    void        HGE_CALL    Shader_EndPass(HSHADER shad) override;
+    void        HGE_CALL    Shader_CommitChanges(HSHADER shad) override;
 
-    virtual HSHPARAM    HGE_CALL    Shader_GetParam(HSHADER shad, const char * name) override;
-    virtual void        HGE_CALL    Shader_SetValue(HSHADER shad, HSHPARAM param, void * data, int length) override;
-    virtual void        HGE_CALL    Shader_GetValue(HSHADER shad, HSHPARAM param, void * data, int length) override;
-    virtual void        HGE_CALL    Shader_SetBool(HSHADER shad, HSHPARAM param, bool b) override;
-    virtual bool        HGE_CALL    Shader_GetBool(HSHADER shad, HSHPARAM param) override;
-    virtual void        HGE_CALL    Shader_SetFloat(HSHADER shad, HSHPARAM param, float f) override;
-    virtual float       HGE_CALL    Shader_GetFloat(HSHADER shad, HSHPARAM param) override;
-    virtual void        HGE_CALL    Shader_SetInt(HSHADER shad, HSHPARAM param, int f) override;
-    virtual int         HGE_CALL    Shader_GetInt(HSHADER shad, HSHPARAM param) override;
-    virtual void        HGE_CALL    Shader_SetTexture(HSHADER shad, HSHPARAM param, HTEXTURE tex) override;
-    virtual HTEXTURE    HGE_CALL    Shader_GetTexture(HSHADER shad, HSHPARAM param) override;
-    virtual void        HGE_CALL    Shader_SetVector(HSHADER shad, HSHPARAM param, float x, float y, float z, float w) override;
-    virtual void        HGE_CALL    Shader_GetVector(HSHADER shad, HSHPARAM param, float * x, float * y, float * z, float * w) override;
+    HSHPARAM    HGE_CALL    Shader_GetParam(HSHADER shad, const char * name) override;
+    void        HGE_CALL    Shader_SetValue(HSHADER shad, HSHPARAM param, void * data, int length) override;
+    void        HGE_CALL    Shader_GetValue(HSHADER shad, HSHPARAM param, void * data, int length) override;
+    void        HGE_CALL    Shader_SetBool(HSHADER shad, HSHPARAM param, bool b) override;
+    bool        HGE_CALL    Shader_GetBool(HSHADER shad, HSHPARAM param) override;
+    void        HGE_CALL    Shader_SetFloat(HSHADER shad, HSHPARAM param, float f) override;
+    float       HGE_CALL    Shader_GetFloat(HSHADER shad, HSHPARAM param) override;
+    void        HGE_CALL    Shader_SetInt(HSHADER shad, HSHPARAM param, int f) override;
+    int         HGE_CALL    Shader_GetInt(HSHADER shad, HSHPARAM param) override;
+    void        HGE_CALL    Shader_SetTexture(HSHADER shad, HSHPARAM param, HTEXTURE tex) override;
+    HTEXTURE    HGE_CALL    Shader_GetTexture(HSHADER shad, HSHPARAM param) override;
+    void        HGE_CALL    Shader_SetVector(HSHADER shad, HSHPARAM param, float x, float y, float z, float w) override;
+    void        HGE_CALL    Shader_GetVector(HSHADER shad, HSHPARAM param, float * x, float * y, float * z, float * w) override;
 
     HTARGET HGE_CALL Target_Create(int width, int height, bool zbuffer) override;
     void HGE_CALL Target_Free(HTARGET target) override;
