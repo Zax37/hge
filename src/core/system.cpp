@@ -173,6 +173,12 @@ bool HGE_CALL HGE_Impl::System_Initiate() {
         return false;
     }
 
+    if (window_accept_files_) {
+        OleInitialize(0);
+        listener = new FileDropListener();
+        RegisterDragDrop(hwnd_, listener);
+    }
+
     ShowWindow(hwnd_, SW_SHOW);
 
     // Init subsystems
@@ -238,9 +244,10 @@ void HGE_CALL HGE_Impl::System_Shutdown() {
     done_power_status();
 
     if (hwnd_) {
-        //ShowWindow(hwnd, SW_HIDE);
-        //SetWindowLong(hwnd, GWL_EXSTYLE, GetWindowLong(hwnd, GWL_EXSTYLE) | WS_EX_TOOLWINDOW);
-        //ShowWindow(hwnd, SW_SHOW);
+        if (window_accept_files_) {
+            RevokeDragDrop(hwnd_);
+        }
+
         DestroyWindow(hwnd_);
         hwnd_ = nullptr;
     }
@@ -514,6 +521,12 @@ void HGE_CALL HGE_Impl::System_SetStateFunc(const hgeFuncState state,
         break;
     case HGE_EXITFUNC:
         proc_exit_func_ = value;
+        break;
+    case HGE_FILEDRAGINFUNC:
+        proc_file_moved_in_func_ = value;
+        break;
+    case HGE_FILEDRAGOUTFUNC:
+        proc_file_moved_out_func_ = value;
         break;
     case HGE_FILEDROPFUNC:
         proc_file_dropped_func_ = value;
@@ -925,11 +938,11 @@ void HGE_Impl::focus_change(const bool b_act) {
     }
 }
 
-std::vector<char*> droppedFiles;
-POINT droppedFilesPosition;
+std::vector<std::string> draggedFiles;
+POINTL droppedFilesPosition;
 
-std::vector<char*> HGE_Impl::System_GetDroppedFiles() {
-    return droppedFiles;
+std::vector<std::string>& HGE_Impl::System_GetDraggedFiles() {
+    return draggedFiles;
 }
 
 void HGE_Impl::System_GetDroppedFilesPosition(int * x, int * y) {
@@ -1075,26 +1088,97 @@ LRESULT CALLBACK WindowProc(const HWND hwnd, const UINT msg, WPARAM wparam, LPAR
             return DefWindowProc(hwnd, msg, wparam, lparam);
         }
         break;
-    case WM_DROPFILES:
-        if (!pHGE->proc_file_dropped_func_) {
-            break;
-        }
-        int nFiles = DragQueryFile((HDROP)wparam, 0xFFFFFFFF, NULL, 0);
-        for (int i = 0; i < nFiles; i++)
-        {
-            char* szTemp64x = new char[MAX_PATH + 1];
-            DragQueryFile((HDROP)wparam, i, szTemp64x, MAX_PATH);
-            droppedFiles.push_back(szTemp64x);
-        }
-        DragQueryPoint((HDROP)wparam, &droppedFilesPosition);
-        DragFinish((HDROP)wparam);
-        pHGE->proc_file_dropped_func_();
-        for (auto file : droppedFiles) {
-            delete[] file;
-        }
-        droppedFiles.clear();
-        break;
     }
 
     return DefWindowProc(hwnd, msg, wparam, lparam);
+}
+
+STDMETHODIMP_(ULONG __stdcall) FileDropListener::AddRef()
+{
+    return InterlockedIncrement(&m_cRef);
+}
+
+STDMETHODIMP_(ULONG __stdcall) FileDropListener::Release()
+{
+    LONG cRef = InterlockedDecrement(&m_cRef);
+    if (cRef == 0) delete this;
+    return cRef;
+}
+
+HRESULT STDMETHODCALLTYPE FileDropListener::QueryInterface(
+    /* [in] */ REFIID riid,
+    /* [iid_is][out] */ _COM_Outptr_ void __RPC_FAR *__RPC_FAR *ppvObject)
+{
+    // Always set out parameter to NULL, validating it first.
+    if (!ppvObject)
+        return E_INVALIDARG;
+    *ppvObject = NULL;
+    if (riid == IID_IUnknown)
+    {
+        // Increment the reference count and return the pointer.
+        *ppvObject = (LPVOID)this;
+        AddRef();
+        return NOERROR;
+    }
+    return E_NOINTERFACE;
+}
+
+HRESULT FileDropListener::DragEnter(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect) {
+    if (pHGE->proc_file_moved_in_func_) {
+        FORMATETC fdrop = { CF_HDROP, 0, DVASPECT_CONTENT, -1, TYMED_HGLOBAL };
+
+        if (SUCCEEDED(pDataObj->QueryGetData(&fdrop))) {
+            STGMEDIUM stgMedium = { 0 };
+            stgMedium.tymed = TYMED_HGLOBAL;
+            HRESULT hr = pDataObj->GetData(&fdrop, &stgMedium);
+            if (SUCCEEDED(hr))
+            {
+                HGLOBAL gmem = stgMedium.hGlobal;
+                HDROP hdrop = (HDROP)GlobalLock(gmem);
+
+                UINT numOfFiles = DragQueryFile((HDROP)hdrop,
+                    0xFFFFFFFF,
+                    NULL,
+                    0
+                );
+
+                TCHAR buffer[MAX_PATH];
+                for (int i = 0; i < numOfFiles; i++) {
+                    DragQueryFile((HDROP)hdrop,
+                        i,
+                        buffer,
+                        MAX_PATH
+                    );
+                    draggedFiles.push_back(buffer);
+                }
+                GlobalUnlock(gmem);
+
+                ::ReleaseStgMedium(&stgMedium);
+            }
+
+        }
+        pHGE->proc_file_moved_in_func_();
+    }
+    return 0;
+}
+
+HRESULT FileDropListener::DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect) {
+    return 0;
+}
+
+HRESULT FileDropListener::DragLeave() {
+    if (pHGE->proc_file_moved_out_func_) {
+        pHGE->proc_file_moved_out_func_();
+    }
+    draggedFiles.clear();
+    return 0;
+}
+
+HRESULT FileDropListener::Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect) {
+    if (pHGE->proc_file_dropped_func_) {
+        droppedFilesPosition = pt;
+        pHGE->proc_file_dropped_func_();
+    }
+    draggedFiles.clear();
+    return 0;
 }

@@ -81,7 +81,7 @@ bool Write32BitPNG(FILE* fp, void* p_bits, const bool b_need_alpha,
 
 bool save_png(const HTEXTURE tex, char* filename) {
     FILE* fp = nullptr;
-    uint32_t* pTexData = nullptr;
+    DWORD* pTexData = nullptr;
 
     try {
         fp = fopen(filename, "wb");

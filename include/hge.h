@@ -54,6 +54,7 @@
 */
 #include <stdint.h>
 #include <vector>
+#include <string>
 
 /*
 ** Common math constants
@@ -152,6 +153,8 @@ enum hgeFuncState
 	HGE_FOCUSGAINFUNC	= 11,   // bool*()	focus gain function	(default: NULL)
 	HGE_GFXRESTOREFUNC	= 12,   // bool*()	exit function		(default: NULL)
 	HGE_EXITFUNC		= 13,   // bool*()	exit function		(default: NULL)
+	HGE_FILEDRAGINFUNC  = 30,   // bool*()  file moved in       (default: NULL)
+	HGE_FILEDRAGOUTFUNC = 31,   // bool*()  file moved out      (default: NULL)
 	HGE_FILEDROPFUNC    = 32,   // bool*()  file dropped        (default: NULL)
 
 	HGEFUNCSTATE_FORCE_DWORD = 0x7FFFFFFF
@@ -316,18 +319,18 @@ class HGE
 {
 public:
     virtual ~HGE() = default;
-    virtual void                HGE_CALL    Release() = 0;
+    virtual void                        HGE_CALL    Release() = 0;
 
-    virtual bool                HGE_CALL    System_Initiate() = 0;
-    virtual void                HGE_CALL    System_Shutdown() = 0;
-    virtual bool                HGE_CALL    System_Start() = 0;
-    virtual char*               HGE_CALL    System_GetErrorMessage() = 0;
-    virtual void                HGE_CALL    System_Log(const char* format, ...) = 0;
-    virtual bool                HGE_CALL    System_Launch(const char* url) = 0;
-    virtual void                HGE_CALL    System_Snapshot(const char* filename = nullptr) = 0;
-	virtual std::vector<char*>  HGE_CALL    System_GetDroppedFiles() = 0;
-	virtual void                HGE_CALL    System_GetDroppedFilesPosition(int * x, int * y) = 0;
-	virtual void                HGE_CALL    System_DoManualMainLoop() = 0;
+    virtual bool                        HGE_CALL    System_Initiate() = 0;
+    virtual void                        HGE_CALL    System_Shutdown() = 0;
+    virtual bool                        HGE_CALL    System_Start() = 0;
+    virtual char*                       HGE_CALL    System_GetErrorMessage() = 0;
+    virtual void                        HGE_CALL    System_Log(const char* format, ...) = 0;
+    virtual bool                        HGE_CALL    System_Launch(const char* url) = 0;
+    virtual void                        HGE_CALL    System_Snapshot(const char* filename = nullptr) = 0;
+	virtual std::vector<std::string>&   HGE_CALL    System_GetDraggedFiles() = 0;
+	virtual void                        HGE_CALL    System_GetDroppedFilesPosition(int * x, int * y) = 0;
+	virtual void                        HGE_CALL    System_DoManualMainLoop() = 0;
 
 private:
 	virtual void		HGE_CALL	System_SetStateBool  (hgeBoolState   state, bool        value) = 0;

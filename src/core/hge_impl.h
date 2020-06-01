@@ -12,6 +12,8 @@
 #include <hge.h>
 #include <stdio.h>
 #include <hge_gapi.h>
+#include <atlbase.h>
+#include <atlcom.h>
 
 
 #define HGE_SPLASH_ENABLE
@@ -60,6 +62,24 @@ void prepare_demo();
 void finish_demo();
 bool demo_render_frame();
 
+class FileDropListener : public IDropTarget
+    {
+public:
+    explicit FileDropListener() : m_cRef(1) {}
+
+    // IUnknown methods
+    STDMETHOD_(ULONG, AddRef)(void);
+    STDMETHOD_(ULONG, Release)(void);
+    STDMETHOD(QueryInterface)(REFIID riid, void FAR* FAR* ppvObj);
+
+    // IDropTarget methods
+    STDMETHOD(DragEnter)(LPDATAOBJECT pDataObj, DWORD grfKeyState, POINTL pt, LPDWORD pdwEffect);
+    STDMETHOD(DragOver)(DWORD grfKeyState, POINTL pt, LPDWORD pdwEffect);
+    STDMETHOD(DragLeave)();
+    STDMETHOD(Drop)(LPDATAOBJECT pDataObj, DWORD grfKeyState, POINTL pt, LPDWORD pdwEffect);
+private:
+    LONG m_cRef;
+};
 
 /*
 ** HGE Interface implementation
@@ -228,7 +248,7 @@ public:
                                           int top = 0, int width = 0, int height = 0) override;
     void HGE_CALL Texture_Unlock(HTEXTURE tex) override;
 
-    std::vector<char*> HGE_CALL System_GetDroppedFiles() override;
+    std::vector<std::string>& HGE_CALL System_GetDraggedFiles() override;
 
     //////// Implementation ////////
 
@@ -253,6 +273,8 @@ public:
     bool (*proc_focus_gain_func_)();
     bool (*proc_gfx_restore_func_)();
     bool (*proc_exit_func_)();
+    bool (*proc_file_moved_in_func_)();
+    bool (*proc_file_moved_out_func_)();
     bool (*proc_file_dropped_func_)();
 
     const char* icon_;
@@ -385,7 +407,7 @@ public:
     uint32_t dt_;
     int cfps_;
 
-
+    FileDropListener* listener = nullptr;
 private:
     HGE_Impl();
 };

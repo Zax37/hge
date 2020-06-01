@@ -150,7 +150,7 @@ HTEXTURE generate_font(char* sz_font_name, const int n_size,
 
     // transfer DC bitmap onto HGE texture with alpha channel
     const auto tex = hge->Texture_Create(n_width, n_height);
-    uint32_t* pTexData = hge->Texture_Lock(tex, false);
+    DWORD* pTexData = hge->Texture_Lock(tex, false);
 
     for (i = 0; i < n_height; i++) {
         for (j = 0; j < n_width; j++) {
