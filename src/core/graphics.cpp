@@ -1040,19 +1040,17 @@ void HGE_Impl::adjust_window() {
     }
 }
 
-void HGE_Impl::resize(const int width, const int height) {
-    if (hwnd_parent_) {
-        //if(procFocusLostFunc) procFocusLostFunc();
+void HGE_Impl::resize(const int width, const int height, bool generateEvent) {
+    d3dpp_windowed_.BackBufferWidth = width;
+    d3dpp_windowed_.BackBufferHeight = height;
+    screen_width_ = width;
+    screen_height_ = height;
 
-        d3dpp_windowed_.BackBufferWidth = width;
-        d3dpp_windowed_.BackBufferHeight = height;
-        screen_width_ = width;
-        screen_height_ = height;
+    set_projection_matrix(screen_width_, screen_height_);
+    gfx_restore();
 
-        set_projection_matrix(screen_width_, screen_height_);
-        gfx_restore();
-
-        //if(procFocusGainFunc) procFocusGainFunc();
+    if (generateEvent && proc_resized_func_) {
+        proc_resized_func_();
     }
 }
 

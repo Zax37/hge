@@ -9,6 +9,7 @@
 
 #include "hge_impl.h"
 #include "notimplemented.h"
+#include "windowsx.h"
 
 
 #define LOWORDINT(n) ((int)((signed short)(LOWORD(n))))
@@ -127,6 +128,8 @@ bool HGE_CALL HGE_Impl::System_Initiate() {
             | WS_POPUP
             | WS_SYSMENU
             | WS_MINIMIZEBOX
+            | WS_MAXIMIZEBOX
+            | WS_SIZEBOX
             | WS_VISIBLE;
 
     if (window_caption_) {
@@ -531,7 +534,14 @@ void HGE_CALL HGE_Impl::System_SetStateFunc(const hgeFuncState state,
     case HGE_FILEDROPFUNC:
         proc_file_dropped_func_ = value;
         break;
+    case HGE_RESIZEFUNC:
+        proc_resized_func_ = value;
+        break;
+    case HGE_FULLSCREENTOGGLEFUNC:
+        proc_fullscreen_toggle_func_ = value;
+        break;
     }
+
 }
 
 void HGE_CALL HGE_Impl::System_SetStateHwnd(const hgeHwndState state,
@@ -613,9 +623,7 @@ void HGE_CALL HGE_Impl::System_SetStateInt(const hgeIntState state, const int va
                     d3dpp_fullscreen_.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
 #endif
                 }
-                //if(procFocusLostFunc) procFocusLostFunc();
                 gfx_restore();
-                //if(procFocusGainFunc) procFocusGainFunc();
             }
         }
         hgefps_ = value;
@@ -625,6 +633,10 @@ void HGE_CALL HGE_Impl::System_SetStateInt(const hgeIntState state, const int va
         else {
             fixed_delta_ = 0;
         }
+        break;
+
+        case HGE_BORDER_WIDTH:
+            border_width_ = value;
         break;
     }
 }
@@ -742,6 +754,8 @@ int HGE_CALL HGE_Impl::System_GetStateInt(const hgeIntState state) {
         return hgefps_;
     case HGE_POWERSTATUS:
         return power_status_;
+    case HGE_BORDER_WIDTH:
+        return border_width_;
     }
 
     return 0;
@@ -869,6 +883,7 @@ HGE_Impl::HGE_Impl()
     mouse_over_ = false;
     is_captured_ = false;
 
+    border_width_ = 5;
     hgefps_ = HGEFPS_UNLIMITED;
     time_ = 0.0f;
     delta_time_ = 0.0f;
@@ -880,6 +895,11 @@ HGE_Impl::HGE_Impl()
     proc_focus_gain_func_ = nullptr;
     proc_gfx_restore_func_ = nullptr;
     proc_exit_func_ = nullptr;
+    proc_file_moved_in_func_ = nullptr;
+    proc_file_moved_out_func_ = nullptr;
+    proc_file_dropped_func_ = nullptr;
+    proc_resized_func_ = nullptr;
+    proc_fullscreen_toggle_func_ = nullptr;
     icon_ = nullptr;
     strcpy(win_title_, "HGE");
     screen_width_ = 800;
@@ -986,15 +1006,6 @@ LRESULT CALLBACK WindowProc(const HWND hwnd, const UINT msg, WPARAM wparam, LPAR
         return FALSE;
     }
 
-    case WM_SETCURSOR:
-        if (pHGE->active_ && LOWORD(lparam) == HTCLIENT && pHGE->hide_mouse_) {
-            SetCursor(nullptr);
-        }
-        else {
-            SetCursor(LoadCursor(nullptr, IDC_ARROW));
-        }
-        return FALSE;
-
     case WM_SYSKEYDOWN: {
         if (wparam == VK_F4) {
             if (pHGE->proc_exit_func_ && !pHGE->proc_exit_func_()) {
@@ -1003,7 +1014,9 @@ LRESULT CALLBACK WindowProc(const HWND hwnd, const UINT msg, WPARAM wparam, LPAR
             return DefWindowProc(hwnd, msg, wparam, lparam);
         }
         if (wparam == VK_RETURN) {
-            pHGE->System_SetState(HGE_WINDOWED, !pHGE->System_GetState(HGE_WINDOWED));
+            if (pHGE->proc_fullscreen_toggle_func_) {
+                pHGE->proc_fullscreen_toggle_func_();
+            }
             return FALSE;
         }
         pHGE->build_event(INPUT_KEYDOWN, wparam, HIWORD(lparam) & 0xFF,
@@ -1073,7 +1086,7 @@ LRESULT CALLBACK WindowProc(const HWND hwnd, const UINT msg, WPARAM wparam, LPAR
         return FALSE;
 
     case WM_SIZE:
-        if (pHGE->d3d_ && wparam == SIZE_RESTORED) {
+        if (pHGE->d3d_ && wparam != SIZE_MINIMIZED  && !IsIconic(pHGE->hwnd_)) {
             pHGE->resize(LOWORD(lparam), HIWORD(lparam));
         }
         //return FALSE;
@@ -1086,8 +1099,60 @@ LRESULT CALLBACK WindowProc(const HWND hwnd, const UINT msg, WPARAM wparam, LPAR
             }
             pHGE->active_ = false;
             return DefWindowProc(hwnd, msg, wparam, lparam);
+        } else {
+            UINT SysCommandCode = wparam & 0xFFF0;
+            if (SysCommandCode == SC_MAXIMIZE) {
+                if (IsIconic(pHGE->hwnd_)) {
+                    OpenIcon(pHGE->hwnd_);
+                }
+                if (pHGE->proc_fullscreen_toggle_func_) {
+                    pHGE->proc_fullscreen_toggle_func_();
+                }
+                return 0;
+            }
         }
         break;
+
+        case WM_NCHITTEST:
+        {
+            RECT WindowRect;
+            int x, y;
+
+            GetWindowRect(pHGE->hwnd_, &WindowRect);
+            x = GET_X_LPARAM(lparam) - WindowRect.left;
+            y = GET_Y_LPARAM(lparam) - WindowRect.top;
+
+            if (x < pHGE->border_width_ && y < pHGE->border_width_)
+                return HTTOPLEFT;
+            else if (x > WindowRect.right - WindowRect.left - pHGE->border_width_ && y < pHGE->border_width_)
+                return HTTOPRIGHT;
+            else if (x > WindowRect.right - WindowRect.left - pHGE->border_width_ && y > WindowRect.bottom - WindowRect.top - pHGE->border_width_)
+                return HTBOTTOMRIGHT;
+            else if (x < pHGE->border_width_ && y > WindowRect.bottom - WindowRect.top - pHGE->border_width_)
+                return HTBOTTOMLEFT;
+            else if (x < pHGE->border_width_)
+                return HTLEFT;
+            else if (y < pHGE->border_width_)
+                return HTTOP;
+            else if (x > WindowRect.right - WindowRect.left - pHGE->border_width_)
+                return HTRIGHT;
+            else if (y > WindowRect.bottom - WindowRect.top - pHGE->border_width_)
+                return HTBOTTOM;
+            else
+                return HTCLIENT;
+        }
+
+        case WM_NCCALCSIZE:
+        case WM_NCPAINT:
+            return 0;
+
+        case WM_GETMINMAXINFO:
+        {
+            LPMINMAXINFO lpMMI = (LPMINMAXINFO)lparam;
+            lpMMI->ptMinTrackSize.x = 1024;
+            lpMMI->ptMinTrackSize.y = 550;
+            return 0;
+        }
     }
 
     return DefWindowProc(hwnd, msg, wparam, lparam);

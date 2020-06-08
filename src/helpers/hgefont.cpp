@@ -170,12 +170,31 @@ hgeFont::~hgeFont() {
 void hgeFont::Render(const float x, float y, int align, const char* string, BOOL pbDisableColors) {
     float fx = x;
 
-    align &= HGETEXT_HORZMASK;
-    if (align == HGETEXT_RIGHT) {
-        fx -= GetStringWidth(string, false);
+    switch (align & HGETEXT_HORZMASK) {
+        case HGETEXT_RIGHT:
+            fx -= GetStringWidth(string, false);
+            break;
+        case HGETEXT_CENTER:
+            fx -= int(GetStringWidth(string, false) / 2.0f);
+            break;
     }
-    if (align == HGETEXT_CENTER) {
-        fx -= int(GetStringWidth(string, false) / 2.0f);
+
+    if (align & HGETEXT_VERTMASK) {
+        int lines = 1;
+        std::string str(string);
+        for (size_t offset = str.find("~n~"); offset != std::string::npos;
+             offset = str.find("~n~", offset + 3)) {
+            ++lines;
+        }
+
+        switch (align & HGETEXT_VERTMASK) {
+            case HGETEXT_BOTTOM:
+                y -= int(lines * GetHeight());
+                break;
+            case HGETEXT_MIDDLE:
+                y -= int(lines * GetHeight() * 0.5f);
+                break;
+        }
     }
 
     while (*string) {
@@ -196,10 +215,7 @@ void hgeFont::Render(const float x, float y, int align, const char* string, BOOL
         }
         else {
             if (string[1] && string[2] && string[0] == '~' && string[2] == '~') {
-                if ( pbDisableColors ) {
-                    string += 3;
-                    continue;
-                } else {
+                if (!pbDisableColors) {
                     switch (string[1]) {
                         case 'a':
                             SetColor(0xFF777777);
@@ -210,7 +226,7 @@ void hgeFont::Render(const float x, float y, int align, const char* string, BOOL
                             string += 3;
                             continue;
                         case 'g':
-                            SetColor(0xFF00FF00);
+                            SetColor(0xFF4CD68F);
                             string += 3;
                             continue;
                         case 'l':
@@ -226,7 +242,7 @@ void hgeFont::Render(const float x, float y, int align, const char* string, BOOL
                             string += 3;
                             continue;
                         case 'w':
-                            SetColor(0xFFFFFFFF);
+                            SetColor(0xFFe1e1e1);
                             string += 3;
                             continue;
                         case 'y':
@@ -345,7 +361,7 @@ void hgeFont::printfb(const float x, const float y, const float w, const float h
     Render(tx, ty, align, buffer_, pbDisableColors);
 }
 
-float hgeFont::GetStringWidth(const char* string, const bool b_multiline) const {
+float hgeFont::GetStringWidth(const char* string, const bool b_multiline, bool bDisableColors) const {
     float w = 0;
 
     while (*string) {
@@ -353,7 +369,7 @@ float hgeFont::GetStringWidth(const char* string, const bool b_multiline) const 
 
         while (*string && *string != '\n') {
             int i = static_cast<unsigned char>(*string);
-            if (string[1] && string[2] && string[0] == '~' && string[2] == '~') {
+            if (!bDisableColors && string[1] && string[2] && string[0] == '~' && string[2] == '~') {
                 if (string[1] == 'n') {
                     string += 3;
                     break;
@@ -381,7 +397,7 @@ float hgeFont::GetStringWidth(const char* string, const bool b_multiline) const 
             w = linew;
         }
 
-        while (*string == '\n' || *string == '\r' || (string[1] && string[2] && string[0] == '~' && string[1] == '\n' && string[2] == '~')) {
+        while (*string == '\n' || *string == '\r') {
             string++;
         }
     }

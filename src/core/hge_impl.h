@@ -12,8 +12,6 @@
 #include <hge.h>
 #include <stdio.h>
 #include <hge_gapi.h>
-#include <atlbase.h>
-#include <atlcom.h>
 
 
 #define HGE_SPLASH_ENABLE
@@ -276,6 +274,8 @@ public:
     bool (*proc_file_moved_in_func_)();
     bool (*proc_file_moved_out_func_)();
     bool (*proc_file_dropped_func_)();
+    bool (*proc_resized_func_)();
+    bool (*proc_fullscreen_toggle_func_)();
 
     const char* icon_;
     char win_title_[256];
@@ -298,6 +298,7 @@ public:
     bool window_caption_;
     bool window_accept_files_;
     HWND hwnd_parent_;
+    int border_width_;
 
 #ifdef HGE_SPLASH_ENABLE
     bool splash_screen_enabled_;
@@ -353,7 +354,7 @@ public:
     void gfx_done();
     bool gfx_restore();
     void adjust_window();
-    void resize(int width, int height);
+    void resize(int width, int height, bool generateEvent = true);
     bool init_lost();
     void render_batch(bool bEndScene = false);
     static int format_id(D3DFORMAT fmt);

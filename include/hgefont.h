@@ -62,7 +62,7 @@ public:
 	float		GetPostWidth(char chr) const { return post_[(unsigned char)chr]; }
 	float		GetHeight() const { return height_; }
 	float       GetHeightb(int w, const char * str);
-	float		GetStringWidth(const char *string, bool bMultiline=true) const;
+	float		GetStringWidth(const char *string, bool bMultiline=true, bool bDisableColors=false) const;
 
 private:
 	hgeFont(const hgeFont &fnt);

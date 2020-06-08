@@ -153,9 +153,12 @@ enum hgeFuncState
 	HGE_FOCUSGAINFUNC	= 11,   // bool*()	focus gain function	(default: NULL)
 	HGE_GFXRESTOREFUNC	= 12,   // bool*()	exit function		(default: NULL)
 	HGE_EXITFUNC		= 13,   // bool*()	exit function		(default: NULL)
-	HGE_FILEDRAGINFUNC  = 30,   // bool*()  file moved in       (default: NULL)
-	HGE_FILEDRAGOUTFUNC = 31,   // bool*()  file moved out      (default: NULL)
-	HGE_FILEDROPFUNC    = 32,   // bool*()  file dropped        (default: NULL)
+
+	HGE_FILEDRAGINFUNC  = 32,   // bool*()  file moved in       (default: NULL)
+	HGE_FILEDRAGOUTFUNC = 33,   // bool*()  file moved out      (default: NULL)
+	HGE_FILEDROPFUNC    = 34,   // bool*()  file dropped        (default: NULL)
+	HGE_RESIZEFUNC		= 35,
+    HGE_FULLSCREENTOGGLEFUNC = 37,
 
 	HGEFUNCSTATE_FORCE_DWORD = 0x7FFFFFFF
 };
@@ -182,6 +185,7 @@ enum hgeIntState
 	HGE_FPS				= 24,	// int		fixed fps			(default: HGEFPS_UNLIMITED)
 
 	HGE_POWERSTATUS		= 25,   // int		battery life percent + status
+	HGE_BORDER_WIDTH	= 36,
 
 	HGEINTSTATE_FORCE_DWORD = 0x7FFFFFF
 };
