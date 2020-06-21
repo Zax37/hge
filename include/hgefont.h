@@ -61,8 +61,9 @@ public:
 	float		GetPreWidth(char chr) const { return pre_[(unsigned char)chr]; }
 	float		GetPostWidth(char chr) const { return post_[(unsigned char)chr]; }
 	float		GetHeight() const { return height_; }
-	float       GetHeightb(int w, const char * str);
 	float		GetStringWidth(const char *string, bool bMultiline=true, bool bDisableColors=false) const;
+	float		GetStringBlockWidth(int w, const char *string) const;
+    float       GetStringBlockHeight(int w, const char * str);
 
 private:
 	hgeFont(const hgeFont &fnt);

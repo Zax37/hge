@@ -214,6 +214,8 @@ void hgeFont::Render(const float x, float y, int align, const char* string, BOOL
             }
         }
         else {
+            int i = static_cast<unsigned char>(*string);
+
             if (string[1] && string[2] && string[0] == '~' && string[2] == '~') {
                 if (!pbDisableColors) {
                     switch (string[1]) {
@@ -249,11 +251,14 @@ void hgeFont::Render(const float x, float y, int align, const char* string, BOOL
                             SetColor(0xFFFFFF00);
                             string += 3;
                             continue;
+                        case ' ':
+                            i = ' ';
+                            string += 2;
+                            break;
                     }
                 }
             }
 
-            int i = static_cast<unsigned char>(*string);
             if (!letters_[i]) {
                 i = '?';
             }
@@ -293,7 +298,7 @@ void hgeFont::printfb(const float x, const float y, const float w, const float h
 
     for (;;) {
         int i = 0;
-        while (pbuf[i] && pbuf[i] != ' ' && pbuf[i] != '\n') {
+        while (pbuf[i] && (pbuf[i] != ' ' || (pbuf[i + 1] == '~' && !pbDisableColors && i > 0 && pbuf[i - 1] == '~')) && pbuf[i] != '\n') {
             i++;
         }
 
@@ -373,6 +378,9 @@ float hgeFont::GetStringWidth(const char* string, const bool b_multiline, bool b
                 if (string[1] == 'n') {
                     string += 3;
                     break;
+                } else if (string[1] == ' ') {
+                    i = ' ';
+                    linew += realw_[i] + pre_[i] + post_[i] + tracking_;
                 }
 
                 string += 3;
@@ -542,11 +550,116 @@ hgeFont::hgeFont(char *data, int datasize, HTEXTURE tex, bool pbDeleteTex, int i
     }
 }
 
-float hgeFont::GetHeightb(int w, const char *str) {
+void hgeFont::LoadXML(char *data, int datasize, int iTexOffX, int iTexOffY) {
+    char* pdesc = _get_line(data, buffer_);
+    pdesc = _get_line(pdesc, buffer_);
+
+    int a = 0, b = 0, c = 0, d = 0, w, h = 0;
+    if (!std::strncmp(buffer_, "<[GlobalOffset", 14)) {
+        sscanf(buffer_, "<[GlobalOffset %d %d %d %d]>", &a, &c, &b, &d);
+        pdesc = _get_line(pdesc, buffer_);
+    }
+    sscanf(buffer_, "<Font size=\"%*d\" family=\"%*s height=\"%d\" %*s", &h);
+    height_ = h;
+    int i = 32;
+
+    int ox, oy, r1, r2, r3, r4;
+    while (pdesc = _get_line(pdesc, buffer_)) {
+        if (!strncmp(buffer_, " <Char", 6)) {
+            sscanf(buffer_, " <Char width=\"%d\" offset=\"%d %d\" rect=\"%d %d %d %d\" %*s", &w, &ox, &oy, &r1, &r2, &r3, &r4);
+            auto letter = new hgeSprite(texture_, r1+iTexOffX, r2+iTexOffY, r3, r4);
+            letter->SetHotSpot(a - ox, c - oy);
+            letters_[i] = letter;
+            realw_[i] = w;
+            pre_[i] = 0;
+            post_[i] = 0;
+            i++;
+            if (i == 127)
+                i = 161;
+        }
+    }
+}
+
+void hgeFont::LoadCSV(char *data, int datasize, int iTexOffX, int iTexOffY) {
+    char* pdesc = _get_line(data, buffer_);
+    pdesc = _get_line(pdesc, buffer_);
+
+    int h, o1, o2, o3, o4;
+    sscanf(buffer_, "h[%d] o[%d %d %d %d]", &h, &o1, &o2, &o3, &o4);
+    height_ = h;
+
+    int d, r1, r2, r3, r4, ox, oy, w;
+    while (pdesc = _get_line(pdesc, buffer_)) {
+        sscanf(buffer_, "#%d r[%d %d %d %d] o[%d %d] w[%d]", &d, &r1, &r2, &r3, &r4, &ox, &oy, &w);
+        auto letter = new hgeSprite(texture_, r1+iTexOffX, r2+iTexOffY, r3, r4);
+        letter->SetHotSpot(o1 - ox, o2 - oy);
+        letters_[d] = letter;
+        realw_[d] = w;
+        pre_[d] = 0;
+        post_[d] = 0;
+    }
+}
+
+float hgeFont::GetStringBlockWidth(int w, const char *string) const {
+    strcpy(buffer_, string);
+    buffer_[sizeof(buffer_) - 1] = 0;
+    char* linestart = buffer_;
+    char* pbuf = buffer_;
+    char* prevword = nullptr;
+    float maxW = 0;
+
+    for (;;) {
+        int i = 0;
+        while (pbuf[i] && (pbuf[i] != ' ' || (pbuf[i + 1] == '~' && i > 0 && pbuf[i - 1] == '~')) && pbuf[i] != '\n') {
+            i++;
+        }
+
+        const auto chr = pbuf[i];
+        pbuf[i] = 0;
+        const auto ww = GetStringWidth(linestart);
+        pbuf[i] = chr;
+
+        if (ww > w) {
+            if (pbuf == linestart) {
+                pbuf[i] = '\n';
+                linestart = &pbuf[i + 1];
+
+                if (ww > maxW) {
+                    maxW = ww;
+                }
+            } else if (prevword != linestart - 1) {
+                *prevword = '\n';
+                linestart = prevword + 1;
+                pbuf = linestart;
+                continue;
+            }
+        } else if (ww > maxW) {
+            maxW = ww;
+        }
+
+        if (pbuf[i] == '\n') {
+            prevword = &pbuf[i];
+            linestart = &pbuf[i + 1];
+            pbuf = &pbuf[i + 1];
+            continue;
+        }
+
+        if (!pbuf[i]) {
+            break;
+        }
+
+        prevword = &pbuf[i];
+        pbuf = &pbuf[i + 1];
+    }
+
+    return maxW;
+}
+
+float hgeFont::GetStringBlockHeight(int w, const char *str) {
     int i, j = 1;
-    strcpy(hgeFont::buffer_, str);
-    const char* v11 = hgeFont::buffer_;
-    char* v13 = hgeFont::buffer_;
+    strcpy(buffer_, str);
+    const char* v11 = buffer_;
+    char* v13 = buffer_;
     char* v12 = nullptr;
     float lastWidth;
     while ( true )
@@ -597,55 +710,5 @@ float hgeFont::GetHeightb(int w, const char *str) {
         v12 = &v13[i];
         v13 += i + 1;
     }
-    return height_ * spacing_ * scale_ * (long double)(j + 1);
-}
-
-void hgeFont::LoadXML(char *data, int datasize, int iTexOffX, int iTexOffY) {
-    char* pdesc = _get_line(data, buffer_);
-    pdesc = _get_line(pdesc, buffer_);
-
-    int a = 0, b = 0, c = 0, d = 0, w, h = 0;
-    if (!std::strncmp(buffer_, "<[GlobalOffset", 14)) {
-        sscanf(buffer_, "<[GlobalOffset %d %d %d %d]>", &a, &c, &b, &d);
-        pdesc = _get_line(pdesc, buffer_);
-    }
-    sscanf(buffer_, "<Font size=\"%*d\" family=\"%*s height=\"%d\" %*s", &h);
-    height_ = h;
-    int i = 32;
-
-    int ox, oy, r1, r2, r3, r4;
-    while (pdesc = _get_line(pdesc, buffer_)) {
-        if (!strncmp(buffer_, " <Char", 6)) {
-            sscanf(buffer_, " <Char width=\"%d\" offset=\"%d %d\" rect=\"%d %d %d %d\" %*s", &w, &ox, &oy, &r1, &r2, &r3, &r4);
-            auto letter = new hgeSprite(texture_, r1+iTexOffX, r2+iTexOffY, r3, r4);
-            letter->SetHotSpot(a - ox, c - oy);
-            letters_[i] = letter;
-            realw_[i] = w;
-            pre_[i] = 0;
-            post_[i] = 0;
-            i++;
-            if (i == 127)
-                i = 161;
-        }
-    }
-}
-
-void hgeFont::LoadCSV(char *data, int datasize, int iTexOffX, int iTexOffY) {
-    char* pdesc = _get_line(data, buffer_);
-    pdesc = _get_line(pdesc, buffer_);
-
-    int h, o1, o2, o3, o4;
-    sscanf(buffer_, "h[%d] o[%d %d %d %d]", &h, &o1, &o2, &o3, &o4);
-    height_ = h;
-
-    int d, r1, r2, r3, r4, ox, oy, w;
-    while (pdesc = _get_line(pdesc, buffer_)) {
-        sscanf(buffer_, "#%d r[%d %d %d %d] o[%d %d] w[%d]", &d, &r1, &r2, &r3, &r4, &ox, &oy, &w);
-        auto letter = new hgeSprite(texture_, r1+iTexOffX, r2+iTexOffY, r3, r4);
-        letter->SetHotSpot(o1 - ox, o2 - oy);
-        letters_[d] = letter;
-        realw_[d] = w;
-        pre_[d] = 0;
-        post_[d] = 0;
-    }
+    return height_ * spacing_ * scale_ * (float)j;
 }

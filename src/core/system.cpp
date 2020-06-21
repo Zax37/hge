@@ -971,7 +971,39 @@ void HGE_Impl::System_GetDroppedFilesPosition(int * x, int * y) {
 }
 
 void HGE_Impl::System_DoManualMainLoop() {
-    throw NotImplemented();
+    if (!hwnd_parent_) {
+        MSG msg;
+        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+            if (msg.message == WM_QUIT) {
+                return;
+            }
+            // TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
+
+    update_mouse();
+
+    dt_ = timeGetTime() - t0_;
+    delta_time_ = dt_ / 1000.0f;
+    time_ += delta_time_;
+    t0_ = timeGetTime();
+
+    if (t0_ - t0_fps_ <= 1000) {
+        cfps_++;
+    } else {
+        fps_ = cfps_;
+        cfps_ = 0;
+        t0_fps_ = t0_;
+        update_power_status();
+    }
+
+    proc_frame_func_();
+    proc_render_func_();
+
+    if (!hwnd_parent_) {
+        clear_queue();
+    }
 }
 
 LRESULT CALLBACK WindowProc(const HWND hwnd, const UINT msg, WPARAM wparam, LPARAM lparam) {
