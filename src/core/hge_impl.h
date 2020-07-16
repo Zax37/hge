@@ -192,7 +192,7 @@ public:
     void HGE_CALL Gfx_RenderLine(float x1, float y1, float x2, float y2,
                                          DWORD color = 0xFFFFFFFF, float z = 0.5f) override;
     void HGE_CALL Gfx_RenderTriple(const hgeTriple* triple) override;
-    void HGE_CALL Gfx_RenderQuad(const hgeQuad* quad) override;
+    void HGE_CALL Gfx_RenderQuad(const hgeQuad* quad, bool filled = true) override;
     void HGE_CALL Gfx_RenderBumpedQuad(const hgeBumpQuad* quad, int, int) override;
     hgeVertex* HGE_CALL Gfx_StartBatch(int prim_type, HTEXTURE tex, int blend,
                                                int* max_prim) override;

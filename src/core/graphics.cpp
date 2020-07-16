@@ -305,27 +305,34 @@ void HGE_CALL HGE_Impl::Gfx_RenderTriple(const hgeTriple* triple) {
     }
 }
 
-void HGE_CALL HGE_Impl::Gfx_RenderQuad(const hgeQuad* quad) {
+void HGE_CALL HGE_Impl::Gfx_RenderQuad(const hgeQuad* quad, bool filled) {
     if (vert_array_) {
-        if (cur_prim_type_ != HGEPRIM_QUADS || n_prim_ >= VERTEX_BUFFER_SIZE / HGEPRIM_QUADS ||
-            cur_texture_ != quad->tex
-            || cur_blend_mode_ != quad->blend) {
-            render_batch();
+        if (filled) {
+            if (cur_prim_type_ != HGEPRIM_QUADS || n_prim_ >= VERTEX_BUFFER_SIZE / HGEPRIM_QUADS ||
+                cur_texture_ != quad->tex
+                || cur_blend_mode_ != quad->blend) {
+                render_batch();
 
-            cur_prim_type_ = HGEPRIM_QUADS;
-            if (cur_blend_mode_ != quad->blend) {
-                set_blend_mode(quad->blend);
+                cur_prim_type_ = HGEPRIM_QUADS;
+                if (cur_blend_mode_ != quad->blend) {
+                    set_blend_mode(quad->blend);
+                }
+                if (quad->tex != cur_texture_) {
+                    d3d_device_->SetTexture(0, reinterpret_cast<hgeGAPITexture *>(quad->tex));
+                    cur_texture_ = quad->tex;
+                }
             }
-            if (quad->tex != cur_texture_) {
-                d3d_device_->SetTexture(0, reinterpret_cast<hgeGAPITexture *>(quad->tex));
-                cur_texture_ = quad->tex;
-            }
+
+            memcpy(&vert_array_[n_prim_ * HGEPRIM_QUADS],
+                   quad->v,
+                   sizeof(hgeVertex) * HGEPRIM_QUADS);
+            n_prim_++;
+        } else {
+            Gfx_RenderLine(quad->v[0].x - 1, quad->v[0].y, quad->v[1].x, quad->v[1].y, quad->v->col);
+            Gfx_RenderLine(quad->v[1].x, quad->v[1].y, quad->v[2].x, quad->v[2].y, quad->v->col);
+            Gfx_RenderLine(quad->v[2].x, quad->v[2].y, quad->v[3].x, quad->v[3].y, quad->v->col);
+            Gfx_RenderLine(quad->v[3].x, quad->v[3].y, quad->v[0].x, quad->v[0].y, quad->v->col);
         }
-
-        memcpy(&vert_array_[n_prim_ * HGEPRIM_QUADS],
-               quad->v, 
-               sizeof(hgeVertex) * HGEPRIM_QUADS);
-        n_prim_++;
     }
 }
 

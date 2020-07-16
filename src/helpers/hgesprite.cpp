@@ -8,7 +8,7 @@
 
 
 #include "../../include/hgesprite.h"
-#include <math.h>
+#include <cmath>
 
 
 HGE* hgeSprite::hge_ = nullptr;

@@ -440,7 +440,7 @@ public:
 	virtual void		HGE_CALL	Gfx_Clear(DWORD color) = 0;
 	virtual void		HGE_CALL	Gfx_RenderLine(float x1, float y1, float x2, float y2, DWORD color=0xFFFFFFFF, float z=0.5f) = 0;
 	virtual void		HGE_CALL	Gfx_RenderTriple(const hgeTriple *triple) = 0;
-	virtual void		HGE_CALL	Gfx_RenderQuad(const hgeQuad *quad) = 0;
+	virtual void		HGE_CALL	Gfx_RenderQuad(const hgeQuad *quad, bool filled = true) = 0;
 	virtual void        HGE_CALL    Gfx_RenderBumpedQuad(const hgeBumpQuad * quad, int lightX, int lightY) = 0;
 	virtual hgeVertex*	HGE_CALL	Gfx_StartBatch(int prim_type, HTEXTURE tex, int blend, int *max_prim) = 0;
 	virtual void		HGE_CALL	Gfx_FinishBatch(int nprim) = 0;
