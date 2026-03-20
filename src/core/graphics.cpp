@@ -11,8 +11,6 @@
 #include "hge_impl.h"
 // GAPI dependent includes and defines (DX8/DX9 switch) by kvakvs@yandex.ru
 #include "hge_gapi.h"
-#include "notimplemented.h"
-
 
 void HGE_CALL HGE_Impl::Gfx_Clear(const DWORD color) {
     if (cur_target_) {
@@ -336,34 +334,84 @@ void HGE_CALL HGE_Impl::Gfx_RenderQuad(const hgeQuad* quad, bool filled) {
     }
 }
 
-void HGE_Impl::Gfx_RenderBumpedQuad(const hgeBumpQuad *quad, int, int) {
-    throw NotImplemented();
-}
-
 IDirect3DDevice9 *HGE_Impl::Gfx_GetDevice() {
     return d3d_device_;
 }
 
 HSURFACE HGE_Impl::Target_GetSurface(HTARGET hTarget) {
-    throw NotImplemented();
-    return 0;
+    auto targ = reinterpret_cast<CRenderTargetList *>(hTarget);
+
+    if (hTarget && targ->pTex) {
+        // Cast the internal texture handle to a D3D9 texture interface
+        auto* pTexture = reinterpret_cast<IDirect3DTexture9*>(targ->pTex);
+        IDirect3DSurface9* pSurface = nullptr;
+
+        // Retrieve the top-level surface (Mip Level 0) from the texture
+        if (SUCCEEDED(pTexture->GetSurfaceLevel(0, &pSurface))) {
+            return reinterpret_cast<HSURFACE>(pSurface);
+        }
+    }
+
+    return 0; // Return 0 (null) if the target is invalid or the surface couldn't be extracted
 }
 
-void HGE_Impl::Surface_Free(HSURFACE) {
-    throw NotImplemented();
+void HGE_Impl::Surface_Free(HSURFACE hSurface) {
+    if (hSurface) {
+        auto* pSurface = reinterpret_cast<IDirect3DSurface9*>(hSurface);
+        pSurface->Release();
+    }
 }
 
-DWORD *HGE_Impl::Surface_Lock(HSURFACE, bool, int, int, int, int) {
-    throw NotImplemented();
+DWORD *HGE_Impl::Surface_Lock(HSURFACE hSurface, bool bReadOnly, int x, int y, int width, int height) {
+    if (!hSurface) return nullptr;
+    auto* pSurface = reinterpret_cast<IDirect3DSurface9*>(hSurface);
+
+    D3DSURFACE_DESC desc;
+    pSurface->GetDesc(&desc);
+
+    // CHECK: Is this a Render Target?
+    // If it's in POOL_DEFAULT and is a Render Target, we can't lock it directly.
+    if (desc.Pool == D3DPOOL_DEFAULT && (desc.Usage & D3DUSAGE_RENDERTARGET)) {
+
+        // 1. Create a staging surface in System Memory if you haven't already.
+        // Optimization: In a real engine, you'd cache this surface so you don't
+        // create/release it every frame.
+        IDirect3DSurface9* pStagingSurf = nullptr;
+        d3d_device_->CreateOffscreenPlainSurface(desc.Width, desc.Height, desc.Format,
+                                                D3DPOOL_SYSTEMMEM, &pStagingSurf, NULL);
+
+        if (pStagingSurf) {
+            // 2. Transfer data from GPU to System RAM
+            if (SUCCEEDED(d3d_device_->GetRenderTargetData(pSurface, pStagingSurf))) {
+
+                // 3. Lock the staging surface instead
+                D3DLOCKED_RECT lockedRect;
+                if (SUCCEEDED(pStagingSurf->LockRect(&lockedRect, nullptr, D3DLOCK_READONLY))) {
+                    // NOTE: This creates a problem: how do we unlock the original HSURFACE?
+                    // You might need to store pStagingSurf in a map associated with hSurface
+                    // so Surface_Unlock knows which one to actually unlock and release.
+                    return reinterpret_cast<DWORD*>(lockedRect.pBits);
+                }
+            }
+            pStagingSurf->Release();
+        }
+        return nullptr;
+    }
+
+    // Default path for regular lockable textures
+    D3DLOCKED_RECT lockedRect;
+    if (SUCCEEDED(pSurface->LockRect(&lockedRect, nullptr, bReadOnly ? D3DLOCK_READONLY : 0))) {
+        return reinterpret_cast<DWORD*>(lockedRect.pBits);
+    }
+
     return nullptr;
 }
 
-void HGE_Impl::Surface_Unlock(HSURFACE) {
-    throw NotImplemented();
-}
-
-void HGE_Impl::Gfx_FlushBuffer() {
-    throw NotImplemented();
+void HGE_Impl::Surface_Unlock(HSURFACE hSurface) {
+    if (hSurface) {
+        auto* pSurface = reinterpret_cast<IDirect3DSurface9*>(hSurface);
+        pSurface->UnlockRect();
+    }
 }
 
 hgeVertex* HGE_CALL HGE_Impl::

@@ -1,7 +1,6 @@
-_build
-_build/*
-bin/
-linklib/
+build
+bin
+linklib
 *.log
 .idea
 .vs

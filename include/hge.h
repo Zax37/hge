@@ -441,14 +441,12 @@ public:
 	virtual void		HGE_CALL	Gfx_RenderLine(float x1, float y1, float x2, float y2, DWORD color=0xFFFFFFFF, float z=0.5f) = 0;
 	virtual void		HGE_CALL	Gfx_RenderTriple(const hgeTriple *triple) = 0;
 	virtual void		HGE_CALL	Gfx_RenderQuad(const hgeQuad *quad, bool filled = true) = 0;
-	virtual void        HGE_CALL    Gfx_RenderBumpedQuad(const hgeBumpQuad * quad, int lightX, int lightY) = 0;
 	virtual hgeVertex*	HGE_CALL	Gfx_StartBatch(int prim_type, HTEXTURE tex, int blend, int *max_prim) = 0;
 	virtual void		HGE_CALL	Gfx_FinishBatch(int nprim) = 0;
 	virtual void		HGE_CALL	Gfx_SetClipping(int x=0, int y=0, int w=0, int h=0) = 0;
 	virtual void		HGE_CALL	Gfx_SetTransform(float x=0, float y=0, float dx=0, float dy=0, float rot=0, float hscale=0, float vscale=0) = 0;
 	virtual IDirect3DDevice9* HGE_CALL Gfx_GetDevice() = 0;
 	virtual void        HGE_CALL    Gfx_GetClipping(int * x = NULL, int * y = NULL, int * w = NULL, int * h = NULL) = 0;
-	virtual void        HGE_CALL    Gfx_FlushBuffer() = 0;
 
     virtual HSHADER     HGE_CALL    Shader_Create(const char * filename, DWORD size) = 0;
     virtual HSHTECH     HGE_CALL    Shader_GetTechnique(HSHADER shad, const char * name) = 0;

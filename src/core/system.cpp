@@ -8,7 +8,6 @@
 
 
 #include "hge_impl.h"
-#include "notimplemented.h"
 #include "windowsx.h"
 
 

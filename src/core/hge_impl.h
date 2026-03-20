@@ -193,7 +193,6 @@ public:
                                          DWORD color = 0xFFFFFFFF, float z = 0.5f) override;
     void HGE_CALL Gfx_RenderTriple(const hgeTriple* triple) override;
     void HGE_CALL Gfx_RenderQuad(const hgeQuad* quad, bool filled = true) override;
-    void HGE_CALL Gfx_RenderBumpedQuad(const hgeBumpQuad* quad, int, int) override;
     hgeVertex* HGE_CALL Gfx_StartBatch(int prim_type, HTEXTURE tex, int blend,
                                                int* max_prim) override;
     void HGE_CALL Gfx_FinishBatch(int nprim) override;
@@ -202,7 +201,6 @@ public:
     void HGE_CALL Gfx_SetTransform(float x = 0, float y = 0, float dx = 0, float dy = 0,
                                            float rot = 0, float hscale = 0, float vscale = 0) override;
     IDirect3DDevice9* HGE_CALL Gfx_GetDevice() override;
-    void HGE_CALL Gfx_FlushBuffer() override;
 
     HSURFACE HGE_CALL Target_GetSurface(HTARGET) override;
     void HGE_CALL Surface_Free(HSURFACE) override;
